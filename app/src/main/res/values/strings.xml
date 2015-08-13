@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">Hot Meals</string>
+
+    <string name="action_settings">Settings</string>
+
+    <string name="title_activity_dishes">DishesActivity</string>
+
+    <string name="total_price_label">Total: </string>
+
+    <string name="submit_order">Submit order</string>
+
+    <string name="confirm_order_label">Confirm your order</string>
+
+    <string name="title_activity_confirm_order">Confirm your order</string>
+
+    <string name="hello_world">Hello world!</string>
+
+    <string name="check_out_button_text">go to checkout</string>
+
+    <string name="submit_order_button_text">submit</string>
+
+    <string name="successful_submit_toast">You order has been successfully submitted</string>\
+
+</resources>
