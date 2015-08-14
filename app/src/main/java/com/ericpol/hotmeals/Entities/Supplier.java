@@ -3,7 +3,11 @@ package com.ericpol.hotmeals.Entities;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-public class Supplier implements Parcelable{
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+public class Supplier implements Parcelable {
 
     private int id;
 
@@ -15,10 +19,14 @@ public class Supplier implements Parcelable{
 
     private double lng;
 
+    private List<String> dates;
+
     public Supplier(int id, String name)
     {
         this.name = name;
         this.id = id;
+        this.dates = new ArrayList<>();
+        dates.add(new Date().toString());
     }
 
     public Supplier(int id, String name, String address, double lat, double lng)
@@ -28,6 +36,8 @@ public class Supplier implements Parcelable{
         this.address = address;
         this.lat = lat;
         this.lng = lng;
+        this.dates = new ArrayList<>();
+        dates.add(new Date().toString());
     }
 
     public void setId(int id) {
@@ -59,12 +69,24 @@ public class Supplier implements Parcelable{
         this.lng = lng;
     }
 
+    public double getLng() {
+        return lng;
+    }
+
     public String getName() {
         return name;
     }
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public List<String> getDates() {
+        return dates;
+    }
+
+    public void setDates(List<String> dates) {
+        this.dates = dates;
     }
 
     //parcelable
@@ -94,4 +116,6 @@ public class Supplier implements Parcelable{
             return new Supplier[size];
         }
     };
+
 }
+

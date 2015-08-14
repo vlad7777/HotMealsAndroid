@@ -1,6 +1,26 @@
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:id="@+id/fragment"
-    android:name="com.ericpol.hotmeals.SuppliersListFragment"
-    tools:layout="@layout/fragment_suppliers_list" android:layout_width="match_parent"
-    android:layout_height="match_parent" />
+<LinearLayout
+xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:tools="http://schemas.android.com/tools"
+android:orientation="vertical"
+android:layout_width="match_parent"
+android:layout_height="match_parent">
 
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools" android:id="@+id/fragment1"
+        android:name="com.ericpol.hotmeals.SuppliersListFragment"
+        tools:layout="@layout/fragment_suppliers_list" android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"/>
+
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/fragment2"
+        android:name="com.ericpol.hotmeals.DateChooserFragment"
+        tools:layout="@layout/fragment_suppliers_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/fragment"
+        android:layout_weight="0"
+        android:layout_gravity="bottom"/>
+
+</LinearLayout>

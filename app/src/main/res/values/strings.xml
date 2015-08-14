@@ -19,6 +19,10 @@
 
     <string name="submit_order_button_text">submit</string>
 
-    <string name="successful_submit_toast">You order has been successfully submitted</string>\
+    <string name="successful_submit_toast">You order has been successfully submitted</string>
+
+    <string name="application_name">Hot Meals</string>
+
+    <string name="choose_date_label">Order for: </string>
 
 </resources>

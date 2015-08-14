@@ -11,13 +11,26 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.ericpol.hotmeals.Entities.Supplier;
+import com.ericpol.hotmeals.RetrofitTools.HotmealsApi;
+import com.google.gson.FieldNamingPolicy;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.internal.bind.DateTypeAdapter;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+
+import retrofit.Callback;
+import retrofit.RestAdapter;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
+import retrofit.converter.GsonConverter;
 
 public class SuppliersListFragment extends Fragment {
 
@@ -64,20 +77,46 @@ public class SuppliersListFragment extends Fragment {
         return rootView;
     }
 
+    private static final String API = "http://3f80b12b.ngrok.com";
+
     private void loadSuppliers()
     {
-        // TODO: 11.8.15 replace the dummy data with something real
         suppliers = new ArrayList<Supplier>();
-        suppliers.add(new Supplier(0, "Drug dealer"));
-        suppliers.add(new Supplier(1, "KFC"));
-        suppliers.add(new Supplier(2, "Macdonald's"));
-        suppliers.add(new Supplier(3, "Beltelecom"));
 
-        if (adapter != null){
-            adapter.clear();
-            for (Supplier e : suppliers){
-                adapter.add(e.getName());
+        Gson gson = new GsonBuilder()
+                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
+                .registerTypeAdapter(Date.class, new DateTypeAdapter())
+                .create();
+
+        RestAdapter restAdapter = new RestAdapter.Builder().setLogLevel(RestAdapter.LogLevel.FULL).setConverter(new GsonConverter(gson)).setEndpoint(API).build();
+        HotmealsApi api = restAdapter.create(HotmealsApi.class);
+        api.fetchSuppliers(new Callback<List<Supplier>>() {
+            @Override
+            public void success(List<Supplier> s, Response response) {
+                suppliers = s;
+                Toast toast = Toast.makeText(getActivity().getApplicationContext(), Integer.toString(s.size()), Toast.LENGTH_LONG);
+                toast.show();
+                if (adapter != null){
+                    adapter.clear();
+                    for (Supplier e : suppliers){
+                        adapter.add(e.getName());
+                    }
+                }
             }
-        }
+
+            @Override
+            public void failure(RetrofitError error) {
+                suppliers.add(new Supplier(8, "ERROR"));
+                Toast toast = Toast.makeText(getActivity().getApplicationContext(), "error", Toast.LENGTH_LONG);
+                toast.show();
+                if (adapter != null) {
+                    adapter.clear();
+                    for (Supplier e : suppliers) {
+                        adapter.add(e.getName());
+                    }
+                }
+            }
+        });
+
     }
 }
