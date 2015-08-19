@@ -25,4 +25,6 @@
 
     <string name="choose_date_label">Order for: </string>
 
+    <string name="domain">http://3f80b12b.ngrok.com</string>
+
 </resources>

@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.ericpol.hotmeals.Entities.Supplier;
@@ -35,7 +36,7 @@ import retrofit.converter.GsonConverter;
 public class SuppliersListFragment extends Fragment {
 
     private ArrayAdapter<String> adapter;
-    private List<Supplier> suppliers;
+    private List<Supplier> suppliers = new ArrayList<>();
 
     public SuppliersListFragment() {
         // Required empty public constructor
@@ -44,13 +45,12 @@ public class SuppliersListFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState){
-
+        API = getResources().getString(R.string.domain);
         adapter =
                 new ArrayAdapter<String>(
                         getActivity(), // The current context (this activity)
@@ -65,10 +65,10 @@ public class SuppliersListFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                // TODO: 11.8.15 add click listener
                 Supplier supplier = suppliers.get(i);
                 Intent intent = new Intent(getActivity(), DishesActivity.class);
                 intent.putExtra("supplier", supplier);
+                intent.putExtra("date", getDateSetting());
                 startActivity(intent);
             }
         });
@@ -77,46 +77,40 @@ public class SuppliersListFragment extends Fragment {
         return rootView;
     }
 
-    private static final String API = "http://3f80b12b.ngrok.com";
+    private String API;
+
+    // TODO: 19.8.15 make this asynchronous and cash it
 
     private void loadSuppliers()
     {
-        suppliers = new ArrayList<Supplier>();
-
-        Gson gson = new GsonBuilder()
-                .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-                .registerTypeAdapter(Date.class, new DateTypeAdapter())
-                .create();
-
-        RestAdapter restAdapter = new RestAdapter.Builder().setLogLevel(RestAdapter.LogLevel.FULL).setConverter(new GsonConverter(gson)).setEndpoint(API).build();
+        RestAdapter restAdapter = new RestAdapter.Builder().setLogLevel(RestAdapter.LogLevel.FULL).setEndpoint(API).build();
         HotmealsApi api = restAdapter.create(HotmealsApi.class);
         api.fetchSuppliers(new Callback<List<Supplier>>() {
             @Override
             public void success(List<Supplier> s, Response response) {
-                suppliers = s;
-                Toast toast = Toast.makeText(getActivity().getApplicationContext(), Integer.toString(s.size()), Toast.LENGTH_LONG);
-                toast.show();
-                if (adapter != null){
-                    adapter.clear();
-                    for (Supplier e : suppliers){
-                        adapter.add(e.getName());
-                    }
-                }
+                updateAdapter(s);
             }
 
             @Override
             public void failure(RetrofitError error) {
-                suppliers.add(new Supplier(8, "ERROR"));
-                Toast toast = Toast.makeText(getActivity().getApplicationContext(), "error", Toast.LENGTH_LONG);
+                Toast toast = Toast.makeText(getActivity().getApplicationContext(), "couldn't fetch data", Toast.LENGTH_SHORT);
                 toast.show();
-                if (adapter != null) {
-                    adapter.clear();
-                    for (Supplier e : suppliers) {
-                        adapter.add(e.getName());
-                    }
-                }
             }
         });
+    }
 
+    private String getDateSetting() {
+        DateChooserFragment dateChooser = (DateChooserFragment) getActivity().getFragmentManager().findFragmentById(R.id.fragment_date_chooser);
+        return dateChooser.getDateString();
+    }
+
+    private void updateAdapter(List<Supplier> suppliers) {
+        this.suppliers = suppliers;
+        if (adapter != null) {
+            adapter.clear();
+            for (Supplier e : suppliers) {
+                adapter.add(e.getName());
+            }
+        }
     }
 }

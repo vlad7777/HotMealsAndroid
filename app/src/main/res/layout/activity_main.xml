@@ -14,7 +14,7 @@ android:layout_height="match_parent">
 
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/fragment2"
+        android:id="@+id/fragment_date_chooser"
         android:name="com.ericpol.hotmeals.DateChooserFragment"
         tools:layout="@layout/fragment_suppliers_list"
         android:layout_width="match_parent"

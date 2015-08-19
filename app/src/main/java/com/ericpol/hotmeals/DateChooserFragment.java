@@ -3,12 +3,19 @@ package com.ericpol.hotmeals;
 
 import android.os.Bundle;
 import android.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
+import java.text.DateFormat;
+import java.text.FieldPosition;
+import java.text.ParseException;
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.ArrayList;
 
 
@@ -22,19 +29,23 @@ public class DateChooserFragment extends Fragment {
         // Required empty public constructor
     }
 
+    private static final String LOG_TAG = DateChooserFragment.class.getName();
+
     ArrayAdapter<String> mAdapter;
+    Spinner mSpinner;
+    Date date = new Date();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_date_chooser, container, false);
 
-        Spinner spinner = (Spinner) rootView.findViewById(R.id.date_spinner);
+        mSpinner = (Spinner) rootView.findViewById(R.id.date_spinner);
 
-        mAdapter = new ArrayAdapter<String>(getActivity().getApplicationContext(), android.R.layout.simple_spinner_item, new ArrayList<String>());
+        mAdapter = new ArrayAdapter<String>(getActivity().getApplicationContext(), R.layout.date_spinner_item, new ArrayList<String>());
 
-        spinner.setAdapter(mAdapter);
-        mAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mSpinner.setAdapter(mAdapter);
+        mAdapter.setDropDownViewResource(R.layout.date_spinner_dropdown_item);
 
         populateSpinner();
 
@@ -42,8 +53,23 @@ public class DateChooserFragment extends Fragment {
     }
 
     public void populateSpinner() {
-        mAdapter.add("today");
-        mAdapter.add("tomorrow");
+        DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+        Date today = new Date();
+        Date tomorrow = new Date(today.getTime() + (1000 * 60 * 60 * 24));
+        mAdapter.add(df.format(today));
+        mAdapter.add(df.format(tomorrow));
+    }
+
+    public String getDateString() {
+        try {
+            DateFormat dfFrom = new SimpleDateFormat("dd/MM/yyyy");
+            String value = mSpinner.getSelectedItem().toString();
+            DateFormat df = new SimpleDateFormat("ddMMyyyy");
+            return df.format(dfFrom.parse(value));
+        } catch (ParseException pe) {
+            Log.e(LOG_TAG, "Parse error");
+            return "";
+        }
     }
 
 

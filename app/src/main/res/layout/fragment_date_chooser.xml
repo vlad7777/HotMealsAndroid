@@ -7,6 +7,7 @@ android:minHeight="@dimen/abc_action_button_min_height_material"
 android:maxHeight="@dimen/abc_action_button_min_height_material"
 android:background="#bebebe"
 android:paddingLeft="@dimen/activity_vertical_margin"
+    android:gravity="center_vertical"
 android:paddingRight="@dimen/activity_vertical_margin"
     >
 
@@ -20,9 +21,11 @@ android:paddingRight="@dimen/activity_vertical_margin"
 
     <Spinner
         android:id="@+id/date_spinner"
+        android:layout_gravity="center_vertical"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
+        android:gravity="center"
         android:layout_toRightOf="@+id/choose_date_label"
         android:layout_toEndOf="@+id/choose_date_label" />
 

@@ -15,15 +15,23 @@ import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.ericpol.hotmeals.Entities.Dish;
 import com.ericpol.hotmeals.Entities.Order;
 import com.ericpol.hotmeals.Entities.Supplier;
+import com.ericpol.hotmeals.RetrofitTools.HotmealsApi;
 
+import java.util.Date;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import retrofit.Callback;
+import retrofit.RestAdapter;
+import retrofit.RetrofitError;
+import retrofit.client.Response;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -32,12 +40,16 @@ public class DishesListFragment extends Fragment {
 
     private static final String LOG_TAG = "DishesListFragment";
 
-    private Supplier supplier;
+    private String API;
 
+    private Supplier supplier;
+    private String dateString;
     private List<Dish> dishes = new ArrayList<>();
     private List<Item> items = new ArrayList<>();
     private List<Dish> selected = new ArrayList<>();
     private double totalPrice = 0;
+
+    ListView mListView;
 
     public DishesListFragment() {
     }
@@ -45,31 +57,44 @@ public class DishesListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        API = getResources().getString(R.string.domain);
         View rootView = inflater.inflate(R.layout.fragment_dishes_list, container, false);
         Intent intent = getActivity().getIntent();
-        if (intent != null && intent.hasExtra("supplier")) {
+        if (intent != null && intent.hasExtra("supplier") && intent.hasExtra("date")) {
             supplier = intent.getParcelableExtra("supplier");
+            dateString = intent.getStringExtra("date");
             getActivity().setTitle(supplier.getName());
         }
 
         loadDishes();
-        ListView listView = (ListView) rootView.findViewById(R.id.dishes_list);
-        listView.setAdapter(new DishesListAdapter(getActivity().getApplicationContext()));
+        mListView = (ListView) rootView.findViewById(R.id.dishes_list);
+        mListView.setAdapter(new DishesListAdapter(getActivity().getApplicationContext()));
 
         return rootView;
     }
 
+    // TODO: 19.8.15 make this asynchronous and cash it
+
     public void loadDishes()
     {
-        // TODO: 12.8.15 replace the dummy data
-        dishes.add(new Dish(0, "Soup", "Troll's fat in vodka", 12000));
-        dishes.add(new Dish(1, "Soup", "Żurek", 20000));
-        dishes.add(new Dish(2, "Main Dish", "Chicken with fries", 25000));
-        dishes.add(new Dish(3, "Main Dish", "VGA cable", 14000));
-        dishes.add(new Dish(4, "Main Dish", "Burned curry wurst", 30000));
-        dishes.add(new Dish(5, "Dessert", "Dragon's eye", 2300000));
-        dishes.add(new Dish(6, "Dessert", "Salt", 10));
+        RestAdapter restAdapter = new RestAdapter.Builder().setLogLevel(RestAdapter.LogLevel.FULL).setEndpoint(API).build();
+        HotmealsApi api = restAdapter.create(HotmealsApi.class);
+        api.fetchDishes(Integer.toString(supplier.getId()), dateString, new Callback<List<Dish>>() {
+            @Override
+            public void success(List<Dish> s, Response response) {
+                updateAdapter(s);
+            }
 
+            @Override
+            public void failure(RetrofitError error) {
+                Toast toast = Toast.makeText(getActivity().getApplicationContext(), "Couldn't fetch data", Toast.LENGTH_SHORT);
+                toast.show();
+            }
+        });
+    }
+
+    private void updateAdapter(List<Dish> dishes) {
+        this.dishes = dishes;
         Collections.sort(dishes);
 
         for (int i = 0; i < dishes.size(); i++) {
@@ -77,6 +102,9 @@ public class DishesListFragment extends Fragment {
                 items.add(new Item(dishes.get(i).getCategoryName(), null));
             items.add(new Item(null, dishes.get(i)));
         }
+
+        mListView.setAdapter(new DishesListAdapter(getActivity().getApplicationContext()));
+
     }
 
     public Order formOrder() {
