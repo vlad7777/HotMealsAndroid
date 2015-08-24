@@ -3,6 +3,7 @@ package com.ericpol.hotmeals;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -17,9 +18,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.ericpol.hotmeals.Data.HotMealsContract;
 import com.ericpol.hotmeals.Entities.Dish;
 import com.ericpol.hotmeals.Entities.Order;
 import com.ericpol.hotmeals.Entities.Supplier;
+import com.ericpol.hotmeals.Presenter.DishesListPresenter;
 import com.ericpol.hotmeals.RetrofitTools.HotmealsApi;
 
 import java.util.Date;
@@ -40,7 +43,7 @@ public class DishesListFragment extends Fragment {
 
     private static final String LOG_TAG = "DishesListFragment";
 
-    private String API;
+    private DishesListPresenter presenter;
 
     private Supplier supplier;
     private String dateString;
@@ -57,7 +60,6 @@ public class DishesListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        API = getResources().getString(R.string.domain);
         View rootView = inflater.inflate(R.layout.fragment_dishes_list, container, false);
         Intent intent = getActivity().getIntent();
         if (intent != null && intent.hasExtra("supplier") && intent.hasExtra("date")) {
@@ -66,34 +68,15 @@ public class DishesListFragment extends Fragment {
             getActivity().setTitle(supplier.getName());
         }
 
-        loadDishes();
         mListView = (ListView) rootView.findViewById(R.id.dishes_list);
         mListView.setAdapter(new DishesListAdapter(getActivity().getApplicationContext()));
+        presenter = new DishesListPresenter(this);
+        presenter.populate();
 
         return rootView;
     }
 
-    // TODO: 19.8.15 make this asynchronous and cash it
-
-    public void loadDishes()
-    {
-        RestAdapter restAdapter = new RestAdapter.Builder().setLogLevel(RestAdapter.LogLevel.FULL).setEndpoint(API).build();
-        HotmealsApi api = restAdapter.create(HotmealsApi.class);
-        api.fetchDishes(Integer.toString(supplier.getId()), dateString, new Callback<List<Dish>>() {
-            @Override
-            public void success(List<Dish> s, Response response) {
-                updateAdapter(s);
-            }
-
-            @Override
-            public void failure(RetrofitError error) {
-                Toast toast = Toast.makeText(getActivity().getApplicationContext(), "Couldn't fetch data", Toast.LENGTH_SHORT);
-                toast.show();
-            }
-        });
-    }
-
-    private void updateAdapter(List<Dish> dishes) {
+    public void updateAdapter(List<Dish> dishes) {
         this.dishes = dishes;
         Collections.sort(dishes);
 
@@ -104,7 +87,6 @@ public class DishesListFragment extends Fragment {
         }
 
         mListView.setAdapter(new DishesListAdapter(getActivity().getApplicationContext()));
-
     }
 
     public Order formOrder() {
@@ -165,7 +147,7 @@ public class DishesListFragment extends Fragment {
                     title.setText(items.get(position).dish.getName());
                     TextView price = (TextView) view.findViewById(R.id.dishes_list_item_price);
 
-                    price.setText(Integer.toString(items.get(position).dish.getPrice()));
+                    price.setText(Double.toString(items.get(position).dish.getPrice()));
 
                     if (items.get(position).isSelected)
                         view.setBackgroundColor(Color.parseColor("#dadada"));
@@ -216,4 +198,11 @@ public class DishesListFragment extends Fragment {
         }
     }
 
+    public Supplier getSupplier() {
+        return supplier;
+    }
+
+    public String getDateString() {
+        return dateString;
+    }
 }

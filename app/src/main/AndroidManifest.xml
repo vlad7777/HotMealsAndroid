@@ -45,6 +45,9 @@
             android:label="@string/application_name"
             android:windowSoftInputMode="adjustResize|stateVisible" >
         </activity>
+        <provider
+            android:authorities="com.ericpol.hotmeals"
+            android:name=".Data.HotMealsProvider" />
     </application>
 
 </manifest>

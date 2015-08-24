@@ -64,7 +64,7 @@ public class DateChooserFragment extends Fragment {
         try {
             DateFormat dfFrom = new SimpleDateFormat("dd/MM/yyyy");
             String value = mSpinner.getSelectedItem().toString();
-            DateFormat df = new SimpleDateFormat("ddMMyyyy");
+            DateFormat df = new SimpleDateFormat("yyyyMMdd");
             return df.format(dfFrom.parse(value));
         } catch (ParseException pe) {
             Log.e(LOG_TAG, "Parse error");

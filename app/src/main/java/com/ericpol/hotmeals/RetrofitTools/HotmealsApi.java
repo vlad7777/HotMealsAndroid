@@ -14,11 +14,14 @@ import retrofit.http.Path;
 public interface HotmealsApi {
 
     @GET("/hotmeals/suppliers")
-    public void fetchSuppliers(Callback<List<Supplier>> response);
+    public List<Supplier> fetchSuppliers();
 
     @GET("/hotmeals/suppliers/{userId}/dishes")
-    public void fetchDishes(@Path("userId") String userId, Callback<List<Dish>> response);
+    public List<Dish> fetchDishes(@Path("userId") String userId);
 
     @GET("/hotmeals/suppliers/{supplierId}/dishes/{date}")
-    public void fetchDishes(@Path("supplierId") String supplierId, @Path("date") String date, Callback<List<Dish>> response);
+    public List<Dish> fetchDishes(@Path("supplierId") String supplierId, @Path("date") String date);
+
+    @GET("/hotmeals/dishes")
+    public List<Dish> fetchDishes();
 }

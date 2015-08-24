@@ -131,18 +131,17 @@ public class ConfirmOrderListFragment extends Fragment {
                     title.setText(items.get(position).title);
                     view.setEnabled(true);
                     return view;
-                } else if (items.get(position).dish != null){
+                } else if (items.get(position).dish != null) {
                     View view = inflater.inflate(R.layout.dishes_list_item, parent, false);
                     TextView title = (TextView) view.findViewById(R.id.dishes_list_item_title);
 
                     title.setText(items.get(position).dish.getName());
                     TextView price = (TextView) view.findViewById(R.id.dishes_list_item_price);
 
-                    price.setText(Integer.toString(items.get(position).dish.getPrice()));
+                    price.setText(Double.toString(items.get(position).dish.getPrice()));
 
                     return view;
-                }
-                else {
+                } else {
                     Log.e(LOG_TAG, "item is null");
                 }
             } catch (Resources.NotFoundException e) {
@@ -160,10 +159,10 @@ public class ConfirmOrderListFragment extends Fragment {
     private class Item {
         public String title;
         public Dish dish;
+
         Item(String title, Dish dish) {
             this.title = title;
             this.dish = dish;
         }
     }
-
 }

@@ -9,7 +9,7 @@ import java.util.List;
 
 public class Supplier implements Parcelable {
 
-    private int id;
+    private long id;
 
     private String name;
 
@@ -21,7 +21,7 @@ public class Supplier implements Parcelable {
 
     private List<String> dates;
 
-    public Supplier(int id, String name)
+    public Supplier(long id, String name)
     {
         this.name = name;
         this.id = id;
@@ -29,7 +29,7 @@ public class Supplier implements Parcelable {
         dates.add(new Date().toString());
     }
 
-    public Supplier(int id, String name, String address, double lat, double lng)
+    public Supplier(long id, String name, String address, double lat, double lng)
     {
         this.name = name;
         this.id = id;
@@ -40,11 +40,16 @@ public class Supplier implements Parcelable {
         dates.add(new Date().toString());
     }
 
-    public void setId(int id) {
+    public String toCommaString() {
+        String result = id + ", " + name + ", " + address + ", " + lat + ", " + lng;
+        return result;
+    }
+
+    public void setId(long id) {
         this.id = id;
     }
 
-    public int getId(){
+    public long getId(){
         return this.id;
     }
 
@@ -95,7 +100,7 @@ public class Supplier implements Parcelable {
     }
 
     public void writeToParcel(Parcel out, int flags){
-        out.writeInt(id);
+        out.writeLong(id);
         out.writeString(name);
         out.writeString(address);
         out.writeDouble(lat);
@@ -104,7 +109,7 @@ public class Supplier implements Parcelable {
 
     public static final Parcelable.Creator<Supplier> CREATOR = new Parcelable.Creator<Supplier>() {
         public Supplier createFromParcel(Parcel in) {
-            int id = in.readInt();
+            long id = in.readLong();
             String name = in.readString();
             String address = in.readString();
             double lat = in.readDouble();
