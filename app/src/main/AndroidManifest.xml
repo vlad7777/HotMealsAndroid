@@ -7,6 +7,7 @@
     <uses-permission android:name="android.permission.READ_PROFILE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <application
         android:allowBackup="true"
@@ -47,7 +48,8 @@
         </activity>
         <provider
             android:authorities="com.ericpol.hotmeals"
-            android:name=".Data.HotMealsProvider" />
+            android:name=".Data.HotMealsProvider"
+            android:exported="false" />
     </application>
 
 </manifest>

@@ -32,7 +32,7 @@ import retrofit.client.Response;
 
 public class HotMealsDbHelper extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 5;
+    private static final int DATABASE_VERSION = 6;
 
     public static final String DATABASE_NAME = "hotmeals.db";
 
@@ -65,7 +65,9 @@ public class HotMealsDbHelper extends SQLiteOpenHelper {
                 " );";
 
         final String SQL_CREATE_UPDATE_TABLE = "CREATE TABLE " + UpdateTimeEntry.TABLE_NAME + " (" +
-                UpdateTimeEntry.COLUMN_UPDATE_TIME + " TEXT NOT NULL );";
+                UpdateTimeEntry.COLUMN_SUPPLIER_ID + " INTEGER PRIMARY KEY, " +
+                UpdateTimeEntry.COLUMN_UPDATE_TIME + " TEXT NOT NULL " +
+                ");";
 
         sqLiteDatabase.execSQL(SQL_CREATE_SUPPLIERS_TABLE);
         sqLiteDatabase.execSQL(SQL_CREATE_DISHES_TABLE);

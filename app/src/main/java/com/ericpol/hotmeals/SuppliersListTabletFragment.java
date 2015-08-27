@@ -3,6 +3,7 @@ package com.ericpol.hotmeals;
 import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -37,23 +38,15 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 import retrofit.converter.GsonConverter;
 
-public class SuppliersListFragment extends Fragment {
+public class SuppliersListTabletFragment extends SuppliersListFragment {
 
-    private static final String LOG_TAG = SuppliersListFragment.class.getName();
+    private static final String LOG_TAG = SuppliersListTabletFragment.class.getName();
 
-    protected ArrayAdapter<String> adapter;
-    protected List<Supplier> suppliers = new ArrayList<>();
-
-    protected SuppliersListPresenter presenter;
-
-    public SuppliersListFragment() {
+    public SuppliersListTabletFragment() {
         // Required empty public constructor
     }
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
+    View prevSelected = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -72,28 +65,16 @@ public class SuppliersListFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                view.setBackgroundColor(Color.parseColor("#dadada"));
+                prevSelected.setBackgroundColor(Color.parseColor("#f0f0f0"));
+                prevSelected = view;
                 Supplier supplier = suppliers.get(i);
-                Intent intent = new Intent(getActivity(), DishesActivity.class);
-                intent.putExtra("supplier", supplier);
-                intent.putExtra("date", getDateSetting());
-                startActivity(intent);
+                DishesListFragment fragment = (DishesListFragment) getActivity().getSupportFragmentManager().findFragmentById(R.id.dishes_list_fragment);
             }
         });
         presenter = new SuppliersListPresenter(this);
         presenter.populate();
         return rootView;
     }
-
-    protected String getDateSetting() {
-        DateChooserFragment dateChooser = (DateChooserFragment) getActivity().getFragmentManager().findFragmentById(R.id.fragment_date_chooser);
-        return dateChooser.getDateString();
-    }
-
-    public void updateAdapter(List<Supplier> suppliers) {
-        this.suppliers = suppliers;
-        adapter.clear();
-        for (Supplier supplier : suppliers) {
-            adapter.add(supplier.getName());
-        }
-    }
 }
+

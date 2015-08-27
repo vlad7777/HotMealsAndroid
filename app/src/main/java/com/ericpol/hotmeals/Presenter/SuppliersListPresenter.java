@@ -32,7 +32,7 @@ public class SuppliersListPresenter /*implements LoaderManager.LoaderCallbacks<C
     public SuppliersListPresenter(SuppliersListFragment fragment) {
         mFragment = fragment;
         dbPopulator = new DBPopulator(fragment.getActivity().getContentResolver());
-        dbPopulator.checkUpdate();
+        dbPopulator.checkSuppliers();
         //mFragment.getActivity().getLoaderManager().initLoader(1, null, this);
     }
 

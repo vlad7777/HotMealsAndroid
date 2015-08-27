@@ -24,11 +24,14 @@ public class DishesListPresenter {
     public DishesListPresenter(DishesListFragment fragment) {
         mFragment = fragment;
         dbPopulator = new DBPopulator(fragment.getActivity().getContentResolver());
-        dbPopulator.checkUpdate();
+        if (mFragment.getSupplier() != null)
+            dbPopulator.checkUpdateForSupplier(mFragment.getSupplier().getId());
         //mFragment.getActivity().getLoaderManager().initLoader(1, null, this);
     }
 
     public void populate() {
+        if (mFragment.getSupplier() == null)
+            return;
         FetchDishesTask task = new FetchDishesTask();
         task.execute();
     }

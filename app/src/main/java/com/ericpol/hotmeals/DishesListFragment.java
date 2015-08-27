@@ -3,42 +3,26 @@ package com.ericpol.hotmeals;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
-import android.database.Cursor;
 import android.graphics.Color;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
-import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.ericpol.hotmeals.Data.HotMealsContract;
 import com.ericpol.hotmeals.Entities.Dish;
 import com.ericpol.hotmeals.Entities.Order;
 import com.ericpol.hotmeals.Entities.Supplier;
 import com.ericpol.hotmeals.Presenter.DishesListPresenter;
-import com.ericpol.hotmeals.RetrofitTools.HotmealsApi;
 
-import java.util.Date;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import retrofit.Callback;
-import retrofit.RestAdapter;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
-
-/**
- * A placeholder fragment containing a simple view.
- */
 public class DishesListFragment extends Fragment {
 
     private static final String LOG_TAG = "DishesListFragment";
@@ -66,6 +50,8 @@ public class DishesListFragment extends Fragment {
             supplier = intent.getParcelableExtra("supplier");
             dateString = intent.getStringExtra("date");
             getActivity().setTitle(supplier.getName());
+        } else { //we are on a tablet here
+
         }
 
         mListView = (ListView) rootView.findViewById(R.id.dishes_list);
@@ -74,6 +60,11 @@ public class DishesListFragment extends Fragment {
         presenter.populate();
 
         return rootView;
+    }
+
+    public void updateSupplier(Supplier supplier) {
+        this.supplier = supplier;
+        presenter.populate();
     }
 
     public void updateAdapter(List<Dish> dishes) {

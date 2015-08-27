@@ -4,11 +4,9 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
-import android.support.v4.content.CursorLoader;
 import android.test.AndroidTestCase;
 import android.util.Log;
 
-import com.ericpol.hotmeals.Data.HotMealsDbHelper;
 import com.ericpol.hotmeals.Entities.Dish;
 import com.ericpol.hotmeals.Entities.Supplier;
 
@@ -101,7 +99,7 @@ public class ContentProviderTest extends AndroidTestCase {
             cv.put(DishEntry.COLUMN_PRICE, dish.getPrice());
             cv.put(DishEntry.COLUMN_BEGIN_DATE, dish.getDateBegin());
             cv.put(DishEntry.COLUMN_END_DATE, dish.getDateEnd());
-            cv.put(DishEntry.COLUMN_SUPPLIER_ID, dish.getSupplier_id());
+            cv.put(DishEntry.COLUMN_SUPPLIER_ID, dish.getSupplierId());
 
             Uri uri = mContentResolver.insert(DishEntry.CONTENT_URI, cv);
             Cursor cursor = mContentResolver.query(uri, null, null, null, null);

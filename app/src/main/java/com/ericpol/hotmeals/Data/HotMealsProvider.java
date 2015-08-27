@@ -37,6 +37,7 @@ public class HotMealsProvider extends ContentProvider {
     private static final int DISHES_BY_SUPPLIER_AND_DATE = 5;
     private static final int DISHES_BY_ID = 6;
     private static final int UPDATE = 7;
+    private static final int UPDATE_BY_SUPPLIER = 8;
 
     static {
         sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -47,6 +48,7 @@ public class HotMealsProvider extends ContentProvider {
         sUriMatcher.addURI(sAuthority, "dishes", DISHES);
         sUriMatcher.addURI(sAuthority, "dishes/#", DISHES_BY_ID);
         sUriMatcher.addURI(sAuthority, "update", UPDATE);
+        sUriMatcher.addURI(sAuthority, "update/*", UPDATE_BY_SUPPLIER);
 
         sQueryBuilder = new SQLiteQueryBuilder();
         sQueryBuilder.setTables(
@@ -123,7 +125,14 @@ public class HotMealsProvider extends ContentProvider {
     }
 
     Cursor getUpdate(Uri uri, String[] projection, String sortOrder) {
-       return mDbHelper.getReadableDatabase().query(UpdateTimeEntry.TABLE_NAME, projection, null, null, null, null, sortOrder);
+        String id = UpdateTimeEntry.getIdFromUri(uri);
+        String selection = null;
+        String[] selectionArgs = null;
+        if (id != null) {
+            selection = UpdateTimeEntry.COLUMN_SUPPLIER_ID + " = ?";
+            selectionArgs = new String[]{id};
+        }
+        return mDbHelper.getReadableDatabase().query(UpdateTimeEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
     }
 
     private int deleteSupplier(Uri uri, String selection, String selectionArgs[]) {
@@ -153,11 +162,28 @@ public class HotMealsProvider extends ContentProvider {
         if (dishId != null) {
             if (selection == null)
                 selection = "";
-            selection = selection + " AND " + SupplierEntry._ID + " = ?";
+            selection = selection + " AND " + DishEntry._ID + " = ?";
             list.add(dishId);
         }
         String[] test = new String[]{};
         return mDbHelper.getWritableDatabase().delete(DishEntry.TABLE_NAME, selection, list.toArray(test));
+    }
+
+    private int deleteUpdate(Uri uri, String selection, String selectionArgs[]) {
+
+        String id = UpdateTimeEntry.getIdFromUri(uri);
+        List<String> list = new ArrayList<>();
+        if (selectionArgs != null)
+            Collections.addAll(list, selectionArgs);
+
+        if (id != null) {
+            if (selection == null)
+                selection = "";
+            selection = selection + " AND " + UpdateTimeEntry.COLUMN_SUPPLIER_ID + " = ?";
+            list.add(id);
+        }
+        String[] test = new String[]{};
+        return mDbHelper.getWritableDatabase().delete(UpdateTimeEntry.TABLE_NAME, selection, list.toArray(test));
     }
 
     @Override
@@ -171,8 +197,6 @@ public class HotMealsProvider extends ContentProvider {
     public String getType(Uri uri) {
 
         final int match = sUriMatcher.match(uri);
-
-        // TODO: 20.8.15 what the hell
 
         switch (match) {
             case SUPPLIERS:
@@ -189,7 +213,9 @@ public class HotMealsProvider extends ContentProvider {
             case DISHES_BY_ID:
                 return DishEntry.CONTENT_ITEM_TYPE;
             case UPDATE:
-                return HotMealsContract.UpdateTimeEntry.CONTENT_ITEM_TYPE;
+                return UpdateTimeEntry.CONTENT_TYPE;
+            case UPDATE_BY_SUPPLIER:
+                return UpdateTimeEntry.CONTENT_ITEM_TYPE;
 
             default:
                 throw new UnsupportedOperationException("Unknown Uri: " + uri);
@@ -223,6 +249,7 @@ public class HotMealsProvider extends ContentProvider {
                 break;
 
             case UPDATE:
+            case UPDATE_BY_SUPPLIER:
                 result = getUpdate(uri, projection, sortOrder);
                 break;
 
@@ -261,7 +288,7 @@ public class HotMealsProvider extends ContentProvider {
 
             case UPDATE:
                 _id = db.insert(UpdateTimeEntry.TABLE_NAME, null, values);
-                if (_id >= 0) {
+                if (_id >= -1) {
                     returnUri = UpdateTimeEntry.CONTENT_URI;
                 } else
                     throw new android.database.SQLException("Failed to insert into " + uri);
@@ -295,6 +322,9 @@ public class HotMealsProvider extends ContentProvider {
                 break;
             case UPDATE:
                 rowsDeleted = db.delete(UpdateTimeEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+            case UPDATE_BY_SUPPLIER:
+                rowsDeleted = deleteUpdate(uri, selection, selectionArgs);
                 break;
             default:
                 throw new UnsupportedOperationException("Unsupported uri: " + uri);

@@ -24,4 +24,5 @@ public interface HotmealsApi {
 
     @GET("/hotmeals/dishes")
     public List<Dish> fetchDishes();
+
 }

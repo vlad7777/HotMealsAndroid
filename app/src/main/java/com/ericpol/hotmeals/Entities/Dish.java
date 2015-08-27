@@ -3,10 +3,6 @@ package com.ericpol.hotmeals.Entities;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 /**
  * Created by vlad on 10.8.15.
  */
@@ -24,9 +20,9 @@ public class Dish implements Comparable<Dish>, Parcelable{
 
     private String dateEnd;
 
-    private long supplier_id;
+    private long supplierId;
 
-    public Dish(long id, String name, String categoryName, double price, String dateBegin, String dateEnd, long supplier_id)
+    public Dish(long id, String name, String categoryName, double price, String dateBegin, String dateEnd, long supplierId)
     {
         this.id = id;
         this.name = name;
@@ -34,7 +30,7 @@ public class Dish implements Comparable<Dish>, Parcelable{
         this.price = price;
         this.dateBegin = dateBegin;
         this.dateEnd = dateEnd;
-        this.supplier_id = supplier_id;
+        this.supplierId = supplierId;
     }
 
     @Override
@@ -55,7 +51,7 @@ public class Dish implements Comparable<Dish>, Parcelable{
         out.writeDouble(price);
         out.writeString(dateBegin);
         out.writeString(dateEnd);
-        out.writeLong(supplier_id);
+        out.writeLong(supplierId);
     }
 
     public static final Parcelable.Creator<Dish> CREATOR = new Parcelable.Creator<Dish>() {
@@ -83,12 +79,12 @@ public class Dish implements Comparable<Dish>, Parcelable{
         this.id = id;
     }
 
-    public long getSupplier_id() {
-        return supplier_id;
+    public long getSupplierId() {
+        return supplierId;
     }
 
-    public void setSupplier_id(long supplier_id) {
-        this.supplier_id = supplier_id;
+    public void setSupplierId(long supplierId) {
+        this.supplierId = supplierId;
     }
 
     public String getName() {
