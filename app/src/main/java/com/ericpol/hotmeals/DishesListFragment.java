@@ -51,7 +51,8 @@ public class DishesListFragment extends Fragment {
             dateString = intent.getStringExtra("date");
             getActivity().setTitle(supplier.getName());
         } else { //we are on a tablet here
-
+            supplier = null;
+            dateString = null;
         }
 
         mListView = (ListView) rootView.findViewById(R.id.dishes_list);
@@ -62,14 +63,17 @@ public class DishesListFragment extends Fragment {
         return rootView;
     }
 
-    public void updateSupplier(Supplier supplier) {
+    public void updateSupplier(Supplier supplier, String dateString) {
         this.supplier = supplier;
+        this.dateString = dateString;
         presenter.populate();
+        Log.i(LOG_TAG, "supplier click or date change detected, updating");
     }
 
     public void updateAdapter(List<Dish> dishes) {
         this.dishes = dishes;
         Collections.sort(dishes);
+        items.clear();
 
         for (int i = 0; i < dishes.size(); i++) {
             if (i == 0 || !dishes.get(i).getCategoryName().equals(dishes.get(i - 1).getCategoryName()))
@@ -131,7 +135,7 @@ public class DishesListFragment extends Fragment {
                     title.setText(items.get(position).title);
                     view.setEnabled(true);
                     return view;
-                } else if (items.get(position).dish != null){
+                } else if (items.get(position).dish != null) {
                     View view = inflater.inflate(R.layout.dishes_list_item, parent, false);
                     TextView title = (TextView) view.findViewById(R.id.dishes_list_item_title);
 
@@ -157,19 +161,14 @@ public class DishesListFragment extends Fragment {
                                 v.setBackgroundColor(Color.parseColor("#dadada"));
                             }
                             item.isSelected = !item.isSelected;
-                            TextView total = (TextView)getActivity().findViewById(R.id.total_price_value);
+                            TextView total = (TextView) getActivity().findViewById(R.id.total_price_value);
                             total.setText(Double.toString(totalPrice));
                         }
                     });
                     return view;
                 }
-                else {
-                    Log.e(LOG_TAG, "item is null");
-                }
             } catch (Resources.NotFoundException e) {
                 View view = inflater.inflate(R.layout.dishes_list_separator, parent, false);
-                if (view == null)
-                    Log.e(LOG_TAG, "view is null, not inflated");
                 TextView title = (TextView) view.findViewById(R.id.dishes_list_separator);
                 title.setText("didn't work here");
                 return view;

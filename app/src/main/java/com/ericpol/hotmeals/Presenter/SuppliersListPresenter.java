@@ -1,7 +1,9 @@
 package com.ericpol.hotmeals.Presenter;
 
 import android.app.LoaderManager;
+import android.content.Context;
 import android.content.CursorLoader;
+import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
@@ -12,7 +14,9 @@ import android.util.Log;
 
 import com.ericpol.hotmeals.Data.HotMealsContract;
 import com.ericpol.hotmeals.Entities.Supplier;
+import com.ericpol.hotmeals.LoginActivity;
 import com.ericpol.hotmeals.R;
+import com.ericpol.hotmeals.RetrofitTools.SecuredRestException;
 import com.ericpol.hotmeals.SuppliersListFragment;
 
 import java.util.ArrayList;
@@ -31,12 +35,11 @@ public class SuppliersListPresenter /*implements LoaderManager.LoaderCallbacks<C
 
     public SuppliersListPresenter(SuppliersListFragment fragment) {
         mFragment = fragment;
-        dbPopulator = new DBPopulator(fragment.getActivity().getContentResolver());
-        dbPopulator.checkSuppliers();
-        //mFragment.getActivity().getLoaderManager().initLoader(1, null, this);
+        dbPopulator = new DBPopulator(fragment.getActivity().getContentResolver(), mFragment.getActivity());
     }
 
     public void populate() {
+        dbPopulator.checkSuppliers();
         FetchSuppliersTask task = new FetchSuppliersTask();
         task.execute();
     }
@@ -68,5 +71,4 @@ public class SuppliersListPresenter /*implements LoaderManager.LoaderCallbacks<C
             mFragment.updateAdapter(suppliers);
         }
     }
-
 }

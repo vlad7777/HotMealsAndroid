@@ -80,12 +80,17 @@ public class SuppliersListFragment extends Fragment {
             }
         });
         presenter = new SuppliersListPresenter(this);
-        presenter.populate();
         return rootView;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        presenter.populate();
+    }
+
     protected String getDateSetting() {
-        DateChooserFragment dateChooser = (DateChooserFragment) getActivity().getFragmentManager().findFragmentById(R.id.fragment_date_chooser);
+        DateChooserFragment dateChooser = (DateChooserFragment) getActivity().getSupportFragmentManager().findFragmentById(R.id.fragment_date_chooser);
         return dateChooser.getDateString();
     }
 
@@ -95,5 +100,9 @@ public class SuppliersListFragment extends Fragment {
         for (Supplier supplier : suppliers) {
             adapter.add(supplier.getName());
         }
+    }
+
+    public void onDateChange() {
+
     }
 }

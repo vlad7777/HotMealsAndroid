@@ -2,6 +2,7 @@ package com.ericpol.hotmeals.RetrofitTools;
 
 import java.util.List;
 
+import com.ericpol.hotmeals.Entities.Category;
 import com.ericpol.hotmeals.Entities.Dish;
 import com.ericpol.hotmeals.Entities.Supplier;
 import retrofit.Callback;
@@ -24,5 +25,11 @@ public interface HotmealsApi {
 
     @GET("/hotmeals/dishes")
     public List<Dish> fetchDishes();
+
+    @GET("/hotmeals/category")
+    public List<Category> fetchCategories();
+
+    @GET("/hotmeals/suppliers/{supplierId}/categories")
+    public List<Category> fetchCategories(@Path("supplierId") String supplierId);
 
 }

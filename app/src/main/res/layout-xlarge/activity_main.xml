@@ -1,34 +1,58 @@
-<RelativeLayout
+<LinearLayout
 xmlns:android="http://schemas.android.com/apk/res/android"
 xmlns:tools="http://schemas.android.com/tools"
-android:orientation="vertical"
+android:orientation="horizontal"
 android:layout_width="match_parent"
 android:layout_height="match_parent">
 
-    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools" android:id="@+id/suppliers_list_fragment"
-        android:name="com.ericpol.hotmeals.SuppliersListFragment"
-        tools:layout="@layout/fragment_suppliers_list"
-        android:layout_alignParentTop="true"
-        android:layout_height="wrap_content"
-        android:layout_width="96dp"
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_weight=".5">
+
+        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools" android:id="@+id/suppliers_list_fragment"
+            android:name="com.ericpol.hotmeals.SuppliersListTabletFragment"
+            tools:layout="@layout/fragment_suppliers_list"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_weight="1"
+            />
+        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/fragment_date_chooser"
+            android:name="com.ericpol.hotmeals.DateChooserFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_weight="0"
+            />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_weight=".5">
+
+        <fragment android:id="@+id/dishes_list_fragment"
+            android:name="com.ericpol.hotmeals.DishesListFragment"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            tools:layout="@layout/fragment_dishes_list"
+            android:layout_weight="1"
+            />
+
+        <fragment android:id="@+id/lower_bar_fragment"
+            android:name="com.ericpol.hotmeals.LowerBarFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="0"
+            android:layout_gravity="bottom"
         />
 
-    <fragment android:id="@+id/dishes_list_fragment"
-        android:name="com.ericpol.hotmeals.DishesListFragment"
-        android:layout_toRightOf="@+id/suppliers_list_fragment"
-        android:layout_height="wrap_content"
-        android:layout_width="96dp"
-        />
+    </LinearLayout>
 
-    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/fragment_date_chooser"
-        android:name="com.ericpol.hotmeals.DateChooserFragment"
-        tools:layout="@layout/fragment_suppliers_list"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:layout_alignParentBottom="true"/>
-
-</RelativeLayout>
+</LinearLayout>

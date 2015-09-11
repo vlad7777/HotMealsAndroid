@@ -7,11 +7,9 @@ public class Category {
 
     private int id;
 
-    private int supplier_id;
+    private int supplierId;
 
     private String name;
-
-
 
     public String getName() {
         return name;
@@ -21,12 +19,12 @@ public class Category {
         this.name = name;
     }
 
-    public int getSupplier_id() {
-        return supplier_id;
+    public int getSupplierId() {
+        return supplierId;
     }
 
-    public void setSupplier_id(int supplier_id) {
-        this.supplier_id = supplier_id;
+    public void setSupplierId(int supplierId) {
+        this.supplierId = supplierId;
     }
 
     public int getId() {

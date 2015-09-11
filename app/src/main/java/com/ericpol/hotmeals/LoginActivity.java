@@ -6,9 +6,11 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.LoaderManager.LoaderCallbacks;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -18,6 +20,7 @@ import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -28,8 +31,24 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.ericpol.hotmeals.RetrofitTools.SecuredRestException;
+import com.ericpol.hotmeals.RetrofitTools.UnsafeHttpsClient;
+import com.google.common.io.BaseEncoding;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+
+import org.apache.commons.io.IOUtils;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit.client.ApacheClient;
+import retrofit.client.Client;
+import retrofit.client.Header;
+import retrofit.client.OkClient;
+import retrofit.client.Request;
+import retrofit.client.Response;
+import retrofit.mime.FormUrlEncodedTypedOutput;
 
 /**
  * A login screen that offers login via email/password.
@@ -37,16 +56,10 @@ import java.util.List;
 public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
 
     /**
-     * A dummy authentication store containing known user names and passwords.
-     * TODO: remove after connecting to a real authentication system.
-     */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "1:1", "bar@example.com:world"
-    };
-    /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
     private UserLoginTask mAuthTask = null;
+    private final static String LOG_TAG = LoginActivity.class.getName();
 
     // UI references.
     private AutoCompleteTextView mEmailView;
@@ -103,8 +116,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     }
 
     void showNext() {
-        Intent intent = new Intent(this, SuppliersActivity.class);
-        startActivity(intent);
+        this.finish();
     }
 
     /**
@@ -230,7 +242,6 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             emails.add(cursor.getString(ProfileQuery.ADDRESS));
             cursor.moveToNext();
         }
-
         addEmailsToAutoComplete(emails);
     }
 
@@ -297,6 +308,10 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         private final String mEmail;
         private final String mPassword;
 
+        private static final String CLIENT_ID = "mobile";
+        private static final String CLIENT_SECRET = "secret";
+        private static final String TOKEN_ISSUING_ENDPOINT = "https://10.0.2.2:8080/oauth/token";
+
         UserLoginTask(String email, String password) {
             mEmail = email;
             mPassword = password;
@@ -307,21 +322,66 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // TODO: attempt authentication against a network service.
 
             try {
-                // Simulate network access.
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                return false;
-            }
+                // This code below programmatically builds an OAuth 2.0 password
+                // grant request and sends it to the server.
 
-            for (String credential : DUMMY_CREDENTIALS) {
-                String[] pieces = credential.split(":");
-                if (pieces[0].equals(mEmail)) {
-                    // Account exists, return true if the password matches.
-                    return pieces[1].equals(mPassword);
+                // Encode the username and password into the body of the request.
+                FormUrlEncodedTypedOutput to = new FormUrlEncodedTypedOutput();
+                to.addField("username", mEmail);
+                to.addField("password", mPassword);
+
+                // Add the client ID and client secret to the body of the request.
+                to.addField("client_id", CLIENT_ID);
+                to.addField("client_secret", CLIENT_SECRET);
+
+                // Indicate that we're using the OAuth Password Grant Flow
+                // by adding grant_type=password to the body
+                to.addField("grant_type", "password");
+
+                // The password grant requires BASIC authentication of the client.
+                // In order to do BASIC authentication, we need to concatenate the
+                // client_id and client_secret values together with a colon and then
+                // Base64 encode them. The final value is added to the request as
+                // the "Authorization" header and the value is set to "Basic "
+                // concatenated with the Base64 client_id:client_secret value described
+                // above.
+                String base64Auth = BaseEncoding.base64().encode(new String(CLIENT_ID + ":" + CLIENT_SECRET).getBytes());
+                // Add the basic authorization header
+                List<Header> headers = new ArrayList<Header>();
+                headers.add(new Header("Authorization", "Basic " + base64Auth));
+
+                // Create the actual password grant request using the data above
+                Request req = new Request("POST", TOKEN_ISSUING_ENDPOINT, headers, to);
+                Client client = new OkClient(UnsafeHttpsClient.createUnsafeClient());
+
+                // Request the password grant.
+                Response resp = client.execute(req);
+
+                // Make sure the server responded with 200 OK
+                if ((resp.getStatus() < 200 || resp.getStatus() > 299)) {
+                    // If not, we probably have bad credentials
+                    throw new SecuredRestException("Login failure: "
+                            + resp.getStatus() + " - " + resp.getReason());
+                } else {
+                    // Extract the string body from the response
+                    String body = IOUtils.toString(resp.getBody().in());
+
+                    // Extract the access_token (bearer token) from the response so that we
+                    // can add it to future requests.
+                    String accessToken = new Gson().fromJson(body, JsonObject.class).get("access_token").getAsString();
+
+                    SharedPreferences pref = LoginActivity.this.getSharedPreferences(getResources().getString(R.string.pref_name), Context.MODE_PRIVATE);
+                    SharedPreferences.Editor edit = pref.edit();
+                    edit.putString(getString(R.string.token), accessToken);
+                    edit.apply();
+                    Log.i(LOG_TAG, "Successful log in");
+                    Log.i(LOG_TAG, accessToken);
                 }
+
+            } catch (Exception e) {
+                Log.i(LOG_TAG, "Error logging in");
             }
 
-            // TODO: register the new account here.
             return true;
         }
 

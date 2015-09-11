@@ -13,10 +13,13 @@ import android.util.Log;
 import com.ericpol.hotmeals.Data.HotMealsContract.SupplierEntry;
 import com.ericpol.hotmeals.Data.HotMealsContract.DishEntry;
 import com.ericpol.hotmeals.Data.HotMealsContract.UpdateTimeEntry;
+import com.ericpol.hotmeals.Data.HotMealsContract.CategoryEntry;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by vlad on 19.8.15.
@@ -29,6 +32,7 @@ public class HotMealsProvider extends ContentProvider {
     private static final String sAuthority = "com.ericpol.hotmeals";
     private HotMealsDbHelper mDbHelper;
     private static final SQLiteQueryBuilder sQueryBuilder;
+    private static final Map<String, String> sProjectionMap;
 
     private static final int SUPPLIERS = 1;
     private static final int SUPPLIERS_BY_ID = 2;
@@ -38,6 +42,8 @@ public class HotMealsProvider extends ContentProvider {
     private static final int DISHES_BY_ID = 6;
     private static final int UPDATE = 7;
     private static final int UPDATE_BY_SUPPLIER = 8;
+    private static final int CATEGORIES = 9;
+    private static final int CATEGORIES_BY_ID = 10;
 
     static {
         sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -49,16 +55,22 @@ public class HotMealsProvider extends ContentProvider {
         sUriMatcher.addURI(sAuthority, "dishes/#", DISHES_BY_ID);
         sUriMatcher.addURI(sAuthority, "update", UPDATE);
         sUriMatcher.addURI(sAuthority, "update/*", UPDATE_BY_SUPPLIER);
+        sUriMatcher.addURI(sAuthority, "categories", CATEGORIES);
+        sUriMatcher.addURI(sAuthority, "categories/#", CATEGORIES_BY_ID);
 
         sQueryBuilder = new SQLiteQueryBuilder();
         sQueryBuilder.setTables(
-                SupplierEntry.TABLE_NAME + " INNER JOIN " +
-                        DishEntry.TABLE_NAME + " ON " +
-                        SupplierEntry.TABLE_NAME + "." +
-                        SupplierEntry._ID + " = " +
+                        DishEntry.TABLE_NAME +
+                        " INNER JOIN " +
+                        CategoryEntry.TABLE_NAME + " ON " +
                         DishEntry.TABLE_NAME + "." +
-                        DishEntry.COLUMN_SUPPLIER_ID
+                        DishEntry.COLUMN_CATEGORY_ID + " = " +
+                        CategoryEntry.TABLE_NAME + "." +
+                        CategoryEntry._ID
         );
+
+        sProjectionMap = new HashMap<String, String>();
+
     }
 
     Cursor getSuppliers(Uri uri, String[] projection, String sortOrder) {
@@ -90,7 +102,8 @@ public class HotMealsProvider extends ContentProvider {
             selectionArgs = new String[]{dishId};
         }
 
-        return mDbHelper.getReadableDatabase().query(DishEntry.TABLE_NAME,
+        return sQueryBuilder.query(
+                mDbHelper.getReadableDatabase(),
                 projection,
                 selection,
                 selectionArgs,
@@ -110,11 +123,11 @@ public class HotMealsProvider extends ContentProvider {
             selection = DishEntry.COLUMN_SUPPLIER_ID + " = ?";
             selectionArgs = new String[]{supplierId};
         } else {
-            selection = DishEntry.COLUMN_SUPPLIER_ID + " = ? AND " + DishEntry.COLUMN_BEGIN_DATE + " <= ?  AND " + DishEntry.COLUMN_END_DATE + " >= ?";
+            selection = DishEntry.TABLE_NAME + "." + DishEntry.COLUMN_SUPPLIER_ID + " = ? AND " + DishEntry.COLUMN_BEGIN_DATE + " <= ?  AND " + DishEntry.COLUMN_END_DATE + " >= ?";
             selectionArgs = new String[]{supplierId, date, date};
         }
 
-        return mDbHelper.getReadableDatabase().query(DishEntry.TABLE_NAME,
+        return sQueryBuilder.query(mDbHelper.getReadableDatabase(),
                 projection,
                 selection,
                 selectionArgs,
@@ -133,6 +146,17 @@ public class HotMealsProvider extends ContentProvider {
             selectionArgs = new String[]{id};
         }
         return mDbHelper.getReadableDatabase().query(UpdateTimeEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
+    }
+
+    Cursor getCategories(Uri uri, String[] projection, String sortOrder) {
+        String id = CategoryEntry.getIdFromUri(uri);
+        String selection = null;
+        String[] selectionArgs = null;
+        if (id != null) {
+            selection = CategoryEntry.COLUMN_SUPPLIER_ID + " = ?";
+            selectionArgs = new String[]{id};
+        }
+        return mDbHelper.getReadableDatabase().query(CategoryEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
     }
 
     private int deleteSupplier(Uri uri, String selection, String selectionArgs[]) {
@@ -169,6 +193,23 @@ public class HotMealsProvider extends ContentProvider {
         return mDbHelper.getWritableDatabase().delete(DishEntry.TABLE_NAME, selection, list.toArray(test));
     }
 
+    private int deleteCategory(Uri uri, String selection, String selectionArgs[]) {
+
+        String id = CategoryEntry.getIdFromUri(uri);
+        List<String> list = new ArrayList<>();
+        if (selectionArgs != null)
+            Collections.addAll(list, selectionArgs);
+
+        if (id != null) {
+            if (selection == null)
+                selection = "";
+            selection = selection + " AND " + CategoryEntry.COLUMN_SUPPLIER_ID + " = ?";
+            list.add(id);
+        }
+        String[] test = new String[]{};
+        return mDbHelper.getWritableDatabase().delete(CategoryEntry.TABLE_NAME, selection, list.toArray(test));
+    }
+
     private int deleteUpdate(Uri uri, String selection, String selectionArgs[]) {
 
         String id = UpdateTimeEntry.getIdFromUri(uri);
@@ -185,7 +226,6 @@ public class HotMealsProvider extends ContentProvider {
         String[] test = new String[]{};
         return mDbHelper.getWritableDatabase().delete(UpdateTimeEntry.TABLE_NAME, selection, list.toArray(test));
     }
-
     @Override
     public boolean onCreate() {
         Log.i(LOG_TAG, "Currently on thread " + Thread.currentThread().getName());
@@ -216,6 +256,11 @@ public class HotMealsProvider extends ContentProvider {
                 return UpdateTimeEntry.CONTENT_TYPE;
             case UPDATE_BY_SUPPLIER:
                 return UpdateTimeEntry.CONTENT_ITEM_TYPE;
+
+            case CATEGORIES:
+                return CategoryEntry.CONTENT_TYPE;
+            case CATEGORIES_BY_ID:
+                return CategoryEntry.CONTENT_TYPE;
 
             default:
                 throw new UnsupportedOperationException("Unknown Uri: " + uri);
@@ -251,6 +296,11 @@ public class HotMealsProvider extends ContentProvider {
             case UPDATE:
             case UPDATE_BY_SUPPLIER:
                 result = getUpdate(uri, projection, sortOrder);
+                break;
+
+            case CATEGORIES:
+            case CATEGORIES_BY_ID:
+                result = getCategories(uri, projection, sortOrder);
                 break;
 
             default:
@@ -294,6 +344,14 @@ public class HotMealsProvider extends ContentProvider {
                     throw new android.database.SQLException("Failed to insert into " + uri);
                 break;
 
+            case CATEGORIES:
+                _id = db.insert(CategoryEntry.TABLE_NAME, null, values);
+                if (_id >= 0) {
+                    returnUri = CategoryEntry.CONTENT_URI;
+                } else
+                    throw new android.database.SQLException("Failed to insert into " + uri);
+                break;
+
             default:
                 throw new UnsupportedOperationException("Unsupported uri: " + uri);
         }
@@ -326,6 +384,12 @@ public class HotMealsProvider extends ContentProvider {
             case UPDATE_BY_SUPPLIER:
                 rowsDeleted = deleteUpdate(uri, selection, selectionArgs);
                 break;
+            case CATEGORIES:
+                rowsDeleted = db.delete(CategoryEntry.TABLE_NAME, selection, selectionArgs);
+                break;
+            case CATEGORIES_BY_ID:
+                rowsDeleted = deleteCategory(uri, selection, selectionArgs);
+                break;
             default:
                 throw new UnsupportedOperationException("Unsupported uri: " + uri);
         }
@@ -349,6 +413,10 @@ public class HotMealsProvider extends ContentProvider {
 
             case UPDATE:
                 rowsUpdated = db.update(UpdateTimeEntry.TABLE_NAME, values, selection, selectionArgs);
+                break;
+
+            case CATEGORIES:
+                rowsUpdated = db.update(CategoryEntry.TABLE_NAME, values, selection, selectionArgs);
                 break;
 
             default:
@@ -390,6 +458,41 @@ public class HotMealsProvider extends ContentProvider {
                 try {
                     for (ContentValues value : values) {
                         long _id = db.insert(DishEntry.TABLE_NAME, null, value);
+                        if (_id != -1) {
+                            returnCount++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                getContext().getContentResolver().notifyChange(uri, null);
+                return returnCount;
+
+            case UPDATE:
+                db.beginTransaction();
+                returnCount = 0;
+                try {
+                    for (ContentValues value : values) {
+                        long _id = db.insert(CategoryEntry.TABLE_NAME, null, value);
+                        if (_id != -1) {
+                            returnCount++;
+                        }
+                    }
+                    db.setTransactionSuccessful();
+                } finally {
+                    db.endTransaction();
+                }
+                getContext().getContentResolver().notifyChange(uri, null);
+                return returnCount;
+
+            case CATEGORIES:
+
+                db.beginTransaction();
+                returnCount = 0;
+                try {
+                    for (ContentValues value : values) {
+                        long _id = db.insert(CategoryEntry.TABLE_NAME, null, value);
                         if (_id != -1) {
                             returnCount++;
                         }

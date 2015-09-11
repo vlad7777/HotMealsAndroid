@@ -2,11 +2,13 @@ package com.ericpol.hotmeals;
 
 
 import android.os.Bundle;
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
+import android.support.v7.internal.widget.AdapterViewCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
@@ -45,6 +47,18 @@ public class DateChooserFragment extends Fragment {
         mAdapter = new ArrayAdapter<String>(getActivity().getApplicationContext(), R.layout.date_spinner_item, new ArrayList<String>());
 
         mSpinner.setAdapter(mAdapter);
+        mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                SuppliersListFragment fragment = (SuppliersListFragment) getFragmentManager().findFragmentById(R.id.suppliers_list_fragment);
+                fragment.onDateChange();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
         mAdapter.setDropDownViewResource(R.layout.date_spinner_dropdown_item);
 
         populateSpinner();

@@ -2,40 +2,86 @@ package com.ericpol.hotmeals.Presenter;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.util.Log;
 
 import com.ericpol.hotmeals.Data.HotMealsContract;
+import com.ericpol.hotmeals.Entities.Category;
 import com.ericpol.hotmeals.Entities.Dish;
 import com.ericpol.hotmeals.Entities.Supplier;
+import com.ericpol.hotmeals.LoginActivity;
+import com.ericpol.hotmeals.R;
 import com.ericpol.hotmeals.RetrofitTools.HotmealsApi;
 
 import com.ericpol.hotmeals.Data.HotMealsContract.SupplierEntry;
 import com.ericpol.hotmeals.Data.HotMealsContract.DishEntry;
 import com.ericpol.hotmeals.Data.HotMealsContract.UpdateTimeEntry;
+import com.ericpol.hotmeals.Data.HotMealsContract.CategoryEntry;
+import com.ericpol.hotmeals.RetrofitTools.SecuredRestBuilder;
+import com.ericpol.hotmeals.RetrofitTools.SecuredRestException;
+import com.ericpol.hotmeals.RetrofitTools.UnsafeHttpsClient;
 
 import java.util.Date;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Vector;
 
 import retrofit.RestAdapter;
+import retrofit.RetrofitError;
+import retrofit.client.ApacheClient;
+import retrofit.client.OkClient;
 
 /**
  * Created by vlad on 23.8.15.
  */
+
 public class DBPopulator {
 
     private ContentResolver mContentResolver;
+    private Context mContext;
 
     private final String LOG_TAG = DBPopulator.class.getName();
 
-    private final String API = "http://3185429e.ngrok.com/";
+    private final String SERVICE_URL = "https://10.0.2.2:8080/";
+    private final String TOKEN_PATH = "oauth/token";
+    private final String CLIENT_SECRET = "secret";
+    private final String CLIENT_ID = "mobile";
 
-    public DBPopulator(ContentResolver contentResolver) {
+    private boolean flagDishes, flagCategories;
+
+    public DBPopulator(ContentResolver contentResolver, Context context) {
         mContentResolver = contentResolver;
+        mContext = context;
+    }
+
+    private String getToken() {
+        String prefName = mContext.getResources().getString(R.string.pref_name);
+        SharedPreferences pref = mContext.getSharedPreferences(prefName, Context.MODE_PRIVATE);
+        String tokenFieldName = mContext.getResources().getString(R.string.token);
+        String defaultValue = "";
+        return pref.getString(tokenFieldName, defaultValue);
+    }
+
+    private HotmealsApi getApi() {
+        return new SecuredRestBuilder().
+                setLoginEndpoint(SERVICE_URL + TOKEN_PATH).
+                setClientId(CLIENT_ID).
+                setClientSecret(CLIENT_SECRET).
+                setClient(new OkClient(UnsafeHttpsClient.createUnsafeClient())).
+                setEndpoint(SERVICE_URL).
+                setLogLevel(RestAdapter.LogLevel.FULL).
+                setToken(getToken()).build().create(HotmealsApi.class);
+    }
+
+    private void startLogInActivity() {
+        Intent intent = new Intent(mContext, LoginActivity.class);
+        mContext.startActivity(intent);
     }
 
     public void checkUpdateForSupplier(long supplierId) {
@@ -58,9 +104,24 @@ public class DBPopulator {
         Log.i(LOG_TAG, "update was " + stringDate);
         if (current.getTime() - date.getTime() >= 1000 * 60 * 60 * 12) {
             Log.w(LOG_TAG, "updating db dishes");
-            UpdateDishesTask task = new UpdateDishesTask();
-            task.execute(supplierId);
+            flagCategories = false;
+            flagDishes = false;
+            new UpdateDishesTask().execute(supplierId);
+            new UpdateCategoriesTask().execute(supplierId);
         }
+    }
+
+    private void updateSuccess(long supplierId) {
+        mContentResolver.delete(UpdateTimeEntry.buildUriFromId(supplierId), null, null);
+
+        Log.i(LOG_TAG, "Update successful for " + supplierId);
+        DateFormat df = new SimpleDateFormat("yyyyMMddkk");
+        String nDate = df.format(new Date());
+        ContentValues cv = new ContentValues();
+        cv.put(UpdateTimeEntry.COLUMN_UPDATE_TIME, nDate);
+        cv.put(UpdateTimeEntry.COLUMN_SUPPLIER_ID, supplierId);
+
+        mContentResolver.insert(UpdateTimeEntry.CONTENT_URI, cv);
     }
 
     public void checkSuppliers() {
@@ -86,7 +147,6 @@ public class DBPopulator {
             UpdateSuppliersTask task = new UpdateSuppliersTask();
             task.execute();
         }
-
     }
 
     private class UpdateDishesTask extends AsyncTask<Long, Void, Integer> {
@@ -95,46 +155,56 @@ public class DBPopulator {
         public Integer doInBackground(Long... params) {
             supplierId = params[0];
 
-            RestAdapter restAdapter = new RestAdapter.Builder().setLogLevel(RestAdapter.LogLevel.FULL).setEndpoint(API).build();
-            HotmealsApi api = restAdapter.create(HotmealsApi.class);
-
             List<Dish> dishes = null;
             try {
-                dishes = api.fetchDishes(Long.toString(supplierId));
+                dishes = getApi().fetchDishes(Long.toString(supplierId));
+            } catch (RetrofitError e) {
+                Log.e(LOG_TAG, "retrofitError");
+                if (e.getResponse() == null)
+                    Log.e(LOG_TAG, e.toString());
+                else if (e.getResponse().getStatus() == 400 || e.getResponse().getStatus() == 401) {
+                    Log.e(LOG_TAG, "tried to fetch categories without being authorized");
+                }
+                else
+                {
+                    Log.e(LOG_TAG, "" + e.getResponse().getStatus());
+                    Log.e(LOG_TAG, e.toString());
+                }
             } catch (Exception e) {
-                Log.e(LOG_TAG, "couldn't fetch data");
+                Log.e(LOG_TAG, e.toString());
             }
+
             if (dishes == null)
                 return 0;
 
             String selection = DishEntry.COLUMN_SUPPLIER_ID + " = ?";
             String[] selectionArgs = new String[]{Long.toString(supplierId)};
             mContentResolver.delete(DishEntry.CONTENT_URI, selection, selectionArgs);
-            mContentResolver.delete(UpdateTimeEntry.buildUriFromId(supplierId), null, null);
+
+            Vector<ContentValues> cvVector = new Vector<ContentValues>();
 
             for (Dish dish : dishes) {
                 ContentValues cv = new ContentValues();
                 cv.put(DishEntry._ID, dish.getId());
                 cv.put(DishEntry.COLUMN_NAME, dish.getName());
-                cv.put(DishEntry.COLUMN_CATEGORY_NAME, dish.getCategoryName());
+                cv.put(DishEntry.COLUMN_CATEGORY_ID, dish.getCategoryId());
                 cv.put(DishEntry.COLUMN_PRICE, dish.getPrice());
                 cv.put(DishEntry.COLUMN_BEGIN_DATE, dish.getDateBegin());
                 cv.put(DishEntry.COLUMN_END_DATE, dish.getDateEnd());
                 cv.put(DishEntry.COLUMN_SUPPLIER_ID, dish.getSupplierId());
-                mContentResolver.insert(DishEntry.CONTENT_URI, cv);
+                cvVector.add(cv);
             }
+
+            mContentResolver.bulkInsert(DishEntry.CONTENT_URI, cvVector.toArray(new ContentValues[]{}));
 
             return 1;
         }
 
         public void onPostExecute(Integer success) {
             if (success.equals(1)) {
-                DateFormat df = new SimpleDateFormat("yyyyMMddkk");
-                String nDate = df.format(new Date());
-                ContentValues cv = new ContentValues();
-                cv.put(UpdateTimeEntry.COLUMN_UPDATE_TIME, nDate);
-                cv.put(UpdateTimeEntry.COLUMN_SUPPLIER_ID, supplierId);
-                mContentResolver.insert(UpdateTimeEntry.CONTENT_URI, cv);
+                flagDishes = true;
+                if (flagCategories && flagDishes)
+                    updateSuccess(supplierId);
             }
         }
     }
@@ -144,20 +214,32 @@ public class DBPopulator {
 
         public Integer doInBackground(Long... params) {
 
-            RestAdapter restAdapter = new RestAdapter.Builder().setLogLevel(RestAdapter.LogLevel.FULL).setEndpoint(API).build();
-            HotmealsApi api = restAdapter.create(HotmealsApi.class);
-
             List<Supplier> suppliers = null;
             try {
-                suppliers = api.fetchSuppliers();
+                suppliers = getApi().fetchSuppliers();
+            } catch (RetrofitError e) {
+                Log.e(LOG_TAG, "retrofitError");
+                if (e.getResponse() == null)
+                    Log.e(LOG_TAG, e.toString());
+                else if (e.getResponse().getStatus() == 400 || e.getResponse().getStatus() == 401) {
+                    Log.e(LOG_TAG, "tried to fetch categories without being authorized");
+                    return -1;
+                }
+                else
+                {
+                    Log.e(LOG_TAG, "" + e.getResponse().getStatus());
+                    Log.e(LOG_TAG, e.toString());
+                }
             } catch (Exception e) {
-                Log.e(LOG_TAG, "couldn't fetch data");
+                Log.e(LOG_TAG, e.toString());
             }
+
+
             if (suppliers == null)
                 return 0;
 
             mContentResolver.delete(SupplierEntry.CONTENT_URI, null, null);
-            mContentResolver.delete(UpdateTimeEntry.buildUriFromId(supplierId), null, null);
+            Vector<ContentValues> cvVector = new Vector<ContentValues>();
 
             for (Supplier supplier : suppliers) {
                 ContentValues cv = new ContentValues();
@@ -166,20 +248,76 @@ public class DBPopulator {
                 cv.put(SupplierEntry.COLUMN_ADDRESS, supplier.getAddress());
                 cv.put(SupplierEntry.COLUMN_COORD_LAT, supplier.getLat());
                 cv.put(SupplierEntry.COLUMN_COORD_LONG, supplier.getLng());
-                mContentResolver.insert(SupplierEntry.CONTENT_URI, cv);
+                cvVector.add(cv);
             }
+
+            mContentResolver.bulkInsert(SupplierEntry.CONTENT_URI, cvVector.toArray(new ContentValues[]{}));
 
             return 1;
         }
 
         public void onPostExecute(Integer success) {
             if (success.equals(1)) {
-                DateFormat df = new SimpleDateFormat("yyyyMMddkk");
-                String nDate = df.format(new Date());
+                updateSuccess(supplierId);
+            } else if (success.equals(-1)) {
+                Log.i(LOG_TAG, "not logged in, starting login activity");
+                startLogInActivity();
+            }
+        }
+    }
+
+    private class UpdateCategoriesTask extends AsyncTask<Long, Void, Integer> {
+        private Long supplierId;
+
+        public Integer doInBackground(Long... params) {
+            supplierId = params[0];
+
+            List<Category> categories = null;
+            try {
+                categories = getApi().fetchCategories(Long.toString(supplierId));
+            } catch (RetrofitError e) {
+                Log.e(LOG_TAG, "retrofitError");
+                if (e.getResponse() == null)
+                    Log.e(LOG_TAG, e.toString());
+                else if (e.getResponse().getStatus() == 400 || e.getResponse().getStatus() == 401) {
+                    Log.e(LOG_TAG, "tried to fetch categories without being authorized");
+                }
+                else
+                {
+                    Log.e(LOG_TAG, "" + e.getResponse().getStatus());
+                    Log.e(LOG_TAG, e.toString());
+                }
+            } catch (Exception e) {
+                Log.e(LOG_TAG, e.toString());
+            }
+
+            if (categories == null)
+                return 0;
+
+            String selection = CategoryEntry.COLUMN_SUPPLIER_ID + " = ?";
+            String[] selectionArgs = new String[]{Long.toString(supplierId)};
+            mContentResolver.delete(CategoryEntry.CONTENT_URI, selection, selectionArgs);
+
+            Vector<ContentValues> cvVector = new Vector<ContentValues>();
+
+            for (Category category : categories) {
                 ContentValues cv = new ContentValues();
-                cv.put(UpdateTimeEntry.COLUMN_UPDATE_TIME, nDate);
-                cv.put(UpdateTimeEntry.COLUMN_SUPPLIER_ID, supplierId);
-                mContentResolver.insert(UpdateTimeEntry.CONTENT_URI, cv);
+                cv.put(CategoryEntry._ID, category.getId());
+                cv.put(CategoryEntry.COLUMN_NAME, category.getName());
+                cv.put(CategoryEntry.COLUMN_SUPPLIER_ID, category.getSupplierId());
+                cvVector.add(cv);
+            }
+
+            mContentResolver.bulkInsert(CategoryEntry.CONTENT_URI, cvVector.toArray(new ContentValues[]{}));
+
+            return 1;
+        }
+
+        public void onPostExecute(Integer success) {
+            if (success.equals(1)) {
+                flagCategories = true;
+                if (flagCategories && flagDishes)
+                    updateSuccess(supplierId);
             }
         }
     }

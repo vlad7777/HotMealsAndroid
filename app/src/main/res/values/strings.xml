@@ -27,7 +27,8 @@
 
     <string name="domain">http://3f80b12b.ngrok.com</string>
 
-<!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="token">token</string>
+
+    <string name="pref_name">shared_pref</string>
 
 </resources>

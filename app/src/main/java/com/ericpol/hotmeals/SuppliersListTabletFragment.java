@@ -47,6 +47,8 @@ public class SuppliersListTabletFragment extends SuppliersListFragment {
     }
 
     View prevSelected = null;
+    Supplier mSupplier;
+    DishesListFragment mDishesList;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -66,15 +68,25 @@ public class SuppliersListTabletFragment extends SuppliersListFragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 view.setBackgroundColor(Color.parseColor("#dadada"));
-                prevSelected.setBackgroundColor(Color.parseColor("#f0f0f0"));
+                if (prevSelected != null)
+                    prevSelected.setBackgroundColor(Color.parseColor("#f0f0f0"));
                 prevSelected = view;
-                Supplier supplier = suppliers.get(i);
-                DishesListFragment fragment = (DishesListFragment) getActivity().getSupportFragmentManager().findFragmentById(R.id.dishes_list_fragment);
+                mSupplier= suppliers.get(i);
+                if (mDishesList == null)
+                    mDishesList = (DishesListFragment) getActivity().getSupportFragmentManager().findFragmentById(R.id.dishes_list_fragment);
+                mDishesList.updateSupplier(mSupplier, getDateSetting());
             }
         });
         presenter = new SuppliersListPresenter(this);
         presenter.populate();
         return rootView;
+    }
+
+    @Override
+    public void onDateChange() {
+        if (mDishesList == null)
+            mDishesList = (DishesListFragment) getActivity().getSupportFragmentManager().findFragmentById(R.id.dishes_list_fragment);
+        mDishesList.updateSupplier(mSupplier, getDateSetting());
     }
 }
 

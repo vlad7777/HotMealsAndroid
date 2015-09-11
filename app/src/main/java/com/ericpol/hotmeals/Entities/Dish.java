@@ -6,11 +6,14 @@ import android.os.Parcelable;
 /**
  * Created by vlad on 10.8.15.
  */
+
 public class Dish implements Comparable<Dish>, Parcelable{
 
     private long id;
 
     private String name;
+
+    private long categoryId;
 
     private String categoryName;
 
@@ -22,15 +25,23 @@ public class Dish implements Comparable<Dish>, Parcelable{
 
     private long supplierId;
 
-    public Dish(long id, String name, String categoryName, double price, String dateBegin, String dateEnd, long supplierId)
+    public Dish(long id, String name, long categoryId, String categoryName, double price, String dateBegin, String dateEnd, long supplierId)
     {
         this.id = id;
         this.name = name;
+        this.categoryId = categoryId;
         this.categoryName = categoryName;
         this.price = price;
         this.dateBegin = dateBegin;
         this.dateEnd = dateEnd;
         this.supplierId = supplierId;
+    }
+
+    public Dish(long id, String name, String categoryName, double price) {
+        this.id = id;
+        this.name = name;
+        this.categoryName = categoryName;
+        this.price = price;
     }
 
     @Override
@@ -47,6 +58,7 @@ public class Dish implements Comparable<Dish>, Parcelable{
     public void writeToParcel(Parcel out, int flags){
         out.writeLong(id);
         out.writeString(name);
+        out.writeLong(categoryId);
         out.writeString(categoryName);
         out.writeDouble(price);
         out.writeString(dateBegin);
@@ -58,12 +70,13 @@ public class Dish implements Comparable<Dish>, Parcelable{
         public Dish createFromParcel(Parcel in) {
             long id = in.readLong();
             String name = in.readString();
+            long categoyId = in.readLong();
             String categoryName = in.readString();
             double price = in.readDouble();
             String beginDate = in.readString();
             String endDate = in.readString();
             long supplier_id = in.readLong();
-            return new Dish(id,name, categoryName, price, beginDate, endDate, supplier_id);
+            return new Dish(id,name, categoyId, categoryName, price, beginDate, endDate, supplier_id);
         }
 
         public Dish[] newArray(int size) {
@@ -99,7 +112,7 @@ public class Dish implements Comparable<Dish>, Parcelable{
         return price;
     }
 
-    public void setPrice(int price) {
+    public void setPrice(double price) {
         this.price = price;
     }
 
@@ -109,6 +122,14 @@ public class Dish implements Comparable<Dish>, Parcelable{
 
     public void setCategoryName(String categoryName) {
         this.categoryName = categoryName;
+    }
+
+    public long getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(long categoryId) {
+        this.categoryId = categoryId;
     }
 
     public String getDateBegin() {

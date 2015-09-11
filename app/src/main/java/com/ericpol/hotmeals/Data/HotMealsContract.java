@@ -19,6 +19,8 @@ public class HotMealsContract {
 
     public static final String PATH_UPDATE = "update";
 
+    public static final String PATH_CATEGORIES = "categories";
+
     public static final class SupplierEntry implements BaseColumns {
 
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_SUPPLIERS).build();
@@ -62,7 +64,7 @@ public class HotMealsContract {
 
         public static final String COLUMN_NAME = "name";
 
-        public static final String COLUMN_CATEGORY_NAME = "category_name";
+        public static final String COLUMN_CATEGORY_ID = "category_id";
 
         public static final String COLUMN_SUPPLIER_ID = "supplier_id";
 
@@ -127,5 +129,32 @@ public class HotMealsContract {
             return CONTENT_URI.buildUpon().appendPath(Long.toString(id)).build();
         }
 
+    }
+
+    public static final class CategoryEntry implements BaseColumns {
+
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_CATEGORIES).build();
+
+        public static final String CONTENT_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_CATEGORIES;
+
+        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_DIR_BASE_TYPE + "/" + CONTENT_AUTHORITY + "/" + PATH_CATEGORIES;
+
+        public static final String TABLE_NAME = "categories";
+
+        public static final String COLUMN_SUPPLIER_ID = "supplier_id";
+
+        public static final String COLUMN_NAME = "name";
+
+        public static String getIdFromUri(Uri uri) {
+            try {
+                return uri.getPathSegments().get(1);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
+        public static Uri buildUriFromId(long id) {
+            return CONTENT_URI.buildUpon().appendPath(Long.toString(id)).build();
+        }
     }
 }
