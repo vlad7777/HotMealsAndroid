@@ -29,12 +29,12 @@ public class DishesListFragment extends Fragment {
 
     private DishesListPresenter presenter;
 
-    private Supplier supplier;
     private String dateString;
     private List<Dish> dishes = new ArrayList<>();
     private List<Item> items = new ArrayList<>();
     private List<Dish> selected = new ArrayList<>();
     private double totalPrice = 0;
+    private int supplierId = 0;
 
     ListView mListView;
 
@@ -46,12 +46,12 @@ public class DishesListFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_dishes_list, container, false);
         Intent intent = getActivity().getIntent();
-        if (intent != null && intent.hasExtra("supplier") && intent.hasExtra("date")) {
-            supplier = intent.getParcelableExtra("supplier");
+        if (intent != null && intent.hasExtra("supplier_name") && intent.hasExtra("supplier_id") && intent.hasExtra("date")) {
+            String supplierName = intent.getStringExtra("supplier_name");
+            supplierId = intent.getIntExtra("supplier_id", -1);
             dateString = intent.getStringExtra("date");
-            getActivity().setTitle(supplier.getName());
+            getActivity().setTitle(supplierName);
         } else { //we are on a tablet here
-            supplier = null;
             dateString = null;
         }
 
@@ -63,8 +63,8 @@ public class DishesListFragment extends Fragment {
         return rootView;
     }
 
-    public void updateSupplier(Supplier supplier, String dateString) {
-        this.supplier = supplier;
+    public void updateSupplier(int supplierId, String dateString) {
+        this.supplierId = supplierId;
         this.dateString = dateString;
         presenter.populate();
         Log.i(LOG_TAG, "supplier click or date change detected, updating");
@@ -188,11 +188,11 @@ public class DishesListFragment extends Fragment {
         }
     }
 
-    public Supplier getSupplier() {
-        return supplier;
-    }
-
     public String getDateString() {
         return dateString;
+    }
+
+    public int getSupplierId() {
+        return supplierId;
     }
 }

@@ -15,21 +15,13 @@ import android.widget.Toast;
 import com.ericpol.hotmeals.Entities.Dish;
 import com.ericpol.hotmeals.Entities.Order;
 import com.ericpol.hotmeals.Entities.Supplier;
+import com.google.gson.Gson;
 
+import org.apache.http.client.methods.HttpPostHC4;
+import org.json.JSONObject;
 import org.w3c.dom.Text;
 
-
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link LowerBarFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link LowerBarFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-
 public class LowerBarFragment extends Fragment {
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -59,16 +51,21 @@ public class LowerBarFragment extends Fragment {
             ((Button) rootView.findViewById(R.id.subimit_order_button)).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Supplier supplier = getActivity().getIntent().getParcelableExtra("supplier");
+                    int supplierId = getActivity().getIntent().getIntExtra("supplier_id", -1);
                     DishesListFragment fragment = (DishesListFragment) getFragmentManager().findFragmentById(R.id.fragment);
                     Intent intent = new Intent(getActivity(), ConfirmOrderActivity.class);
-                    intent.putExtra("supplier", supplier);
+                    intent.putExtra("supplier_id", supplierId);
                     intent.putExtra("order", fragment.formOrder());
                     startActivity(intent);
                 }
             });
         }
         return rootView;
+    }
+
+    private void POST(Order order) {
+        Gson gson = new Gson();
+        String json = gson.toJson(order);
     }
 
 

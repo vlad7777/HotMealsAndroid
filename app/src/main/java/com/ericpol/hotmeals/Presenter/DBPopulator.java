@@ -25,6 +25,7 @@ import com.ericpol.hotmeals.RetrofitTools.SecuredRestBuilder;
 import com.ericpol.hotmeals.RetrofitTools.SecuredRestException;
 import com.ericpol.hotmeals.RetrofitTools.UnsafeHttpsClient;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -43,6 +44,34 @@ import retrofit.client.OkClient;
 
 public class DBPopulator {
 
+    private static final class DummyData {
+
+        public static final List<Dish> dishes;
+        public static final List<Category> categories;
+        public static final List<Supplier> suppliers;
+
+        static {
+            dishes = new ArrayList<>();
+            dishes.add(new Dish(0, "Wine", 0, "drink", 34, "20150909", "20160909", 0));
+            dishes.add(new Dish(1, "Coke", 0, "drink", 20, "20150909", "20160909", 0));
+            dishes.add(new Dish(2, "Meat", 1, "Main course", 30, "20150909", "20160909", 0));
+            dishes.add(new Dish(3, "Zurek", 2, "soup", 30, "20150909", "20160909", 1));
+            dishes.add(new Dish(4, "Ice cream", 3, "Dessert", 30, "20150909", "20160909", 1));
+            dishes.add(new Dish(5, "Meat", 3, "Dessert", 30, "20150909", "20160909", 1));
+
+            categories = new ArrayList<>();
+            categories.add(new Category(0, "Drink", 0));
+            categories.add(new Category(1, "Main course", 0));
+            categories.add(new Category(2, "soup", 1));
+            categories.add(new Category(3, "Dessert", 1));
+
+            suppliers = new ArrayList<>();
+            suppliers.add(new Supplier(0, "Vociferous phatasm"));
+            suppliers.add(new Supplier(1, "Obstreperous ferrule"));
+        }
+
+    };
+
     private ContentResolver mContentResolver;
     private Context mContext;
 
@@ -54,6 +83,7 @@ public class DBPopulator {
     private final String CLIENT_ID = "mobile";
 
     private boolean flagDishes, flagCategories;
+    private boolean useDummy = true;
 
     public DBPopulator(ContentResolver contentResolver, Context context) {
         mContentResolver = contentResolver;
@@ -175,7 +205,10 @@ public class DBPopulator {
             }
 
             if (dishes == null)
-                return 0;
+                if (useDummy)
+                    dishes = DummyData.dishes;
+                else
+                    return 0;
 
             String selection = DishEntry.COLUMN_SUPPLIER_ID + " = ?";
             String[] selectionArgs = new String[]{Long.toString(supplierId)};
@@ -236,7 +269,12 @@ public class DBPopulator {
 
 
             if (suppliers == null)
-                return 0;
+                if (useDummy) {
+                    suppliers = DummyData.suppliers;
+                    Log.i(LOG_TAG, "used dummy data");
+                }
+                else
+                    return 0;
 
             mContentResolver.delete(SupplierEntry.CONTENT_URI, null, null);
             Vector<ContentValues> cvVector = new Vector<ContentValues>();
@@ -292,7 +330,10 @@ public class DBPopulator {
             }
 
             if (categories == null)
-                return 0;
+                if (useDummy)
+                       categories = DummyData.categories;
+                else
+                    return 0;
 
             String selection = CategoryEntry.COLUMN_SUPPLIER_ID + " = ?";
             String[] selectionArgs = new String[]{Long.toString(supplierId)};

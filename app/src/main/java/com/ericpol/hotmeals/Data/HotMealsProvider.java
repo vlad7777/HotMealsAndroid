@@ -317,7 +317,7 @@ public class HotMealsProvider extends ContentProvider {
 
         Uri returnUri;
 
-        long _id;
+        long _id = -1;
 
         switch (sUriMatcher.match(uri)) {
             case SUPPLIERS:
@@ -355,6 +355,9 @@ public class HotMealsProvider extends ContentProvider {
             default:
                 throw new UnsupportedOperationException("Unsupported uri: " + uri);
         }
+        if (_id != -1)
+            getContext().getContentResolver().notifyChange(uri, null);
+
         return returnUri;
     }
 
@@ -393,7 +396,8 @@ public class HotMealsProvider extends ContentProvider {
             default:
                 throw new UnsupportedOperationException("Unsupported uri: " + uri);
         }
-
+        if (rowsDeleted > 0)
+            getContext().getContentResolver().notifyChange(uri, null);
         return rowsDeleted;
     }
 

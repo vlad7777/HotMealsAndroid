@@ -1,15 +1,15 @@
 package com.ericpol.hotmeals.Presenter;
 
-import android.app.LoaderManager;
 import android.content.Context;
-import android.content.CursorLoader;
 import android.content.Intent;
-import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.util.Log;
 
 import com.ericpol.hotmeals.Data.HotMealsContract;
@@ -26,9 +26,11 @@ import java.util.List;
  * Created by vlad on 21.8.15.
  */
 
-public class SuppliersListPresenter /*implements LoaderManager.LoaderCallbacks<Cursor>*/ {
+public class SuppliersListPresenter implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final String LOG_TAG = SuppliersListPresenter.class.getName();
+
+    private static final int SUPPLIERS_LOADER = 0;
 
     SuppliersListFragment mFragment;
     DBPopulator dbPopulator;
@@ -36,15 +38,25 @@ public class SuppliersListPresenter /*implements LoaderManager.LoaderCallbacks<C
     public SuppliersListPresenter(SuppliersListFragment fragment) {
         mFragment = fragment;
         dbPopulator = new DBPopulator(fragment.getActivity().getContentResolver(), mFragment.getActivity());
-    }
-
-    public void populate() {
         dbPopulator.checkSuppliers();
-        FetchSuppliersTask task = new FetchSuppliersTask();
-        task.execute();
+        mFragment.getLoaderManager().initLoader(SUPPLIERS_LOADER, null, this);
     }
 
-    private class FetchSuppliersTask extends AsyncTask<List<Supplier>, Void, List<Supplier>> {
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        String[] projection = new String[]{HotMealsContract.SupplierEntry._ID, HotMealsContract.SupplierEntry.COLUMN_NAME};
+        return new CursorLoader(mFragment.getActivity(), HotMealsContract.SupplierEntry.CONTENT_URI, projection, null, null, null);
+    }
+
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mFragment.getAdapter().swapCursor(data);
+    }
+
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mFragment.getAdapter().swapCursor(null);
+    }
+
+    /*private class FetchSuppliersTask extends AsyncTask<List<Supplier>, Void, List<Supplier>> {
+
 
         private static final String LOG_TAG = "FetchSuppliersTask";
         private List<Supplier> target;
@@ -70,5 +82,5 @@ public class SuppliersListPresenter /*implements LoaderManager.LoaderCallbacks<C
         protected void onPostExecute(List<Supplier> suppliers) {
             mFragment.updateAdapter(suppliers);
         }
-    }
+    }*/
 }

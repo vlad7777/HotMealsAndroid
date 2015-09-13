@@ -44,16 +44,13 @@ public class DishesListPresenter {
 
     public DishesListPresenter(DishesListFragment fragment) {
         mFragment = fragment;
-        String token = fragment.getActivity().getPreferences(Context.MODE_PRIVATE).getString(fragment.getActivity().getString(R.string.token), "");
         dbPopulator = new DBPopulator(fragment.getActivity().getContentResolver(), mFragment.getActivity());
-        if (mFragment.getSupplier() != null) {
-            dbPopulator.checkUpdateForSupplier(mFragment.getSupplier().getId());
-        }
+        dbPopulator.checkUpdateForSupplier(mFragment.getSupplierId());
         //mFragment.getActivity().getLoaderManager().initLoader(1, null, this);
     }
 
     public void populate() {
-        if (mFragment.getSupplier() == null)
+        if (mFragment.getSupplierId() == -1)
             return;
         FetchDishesTask task = new FetchDishesTask();
         task.execute();
@@ -65,7 +62,7 @@ public class DishesListPresenter {
 
         protected List<Dish> doInBackground(List<Dish>... params) {
             // TODO: 31/08/15 add projection 
-            Cursor cursor = mFragment.getActivity().getContentResolver().query(HotMealsContract.DishEntry.buildDishUriFromSupplierIdAndDate(mFragment.getSupplier().getId(),
+            Cursor cursor = mFragment.getActivity().getContentResolver().query(HotMealsContract.DishEntry.buildDishUriFromSupplierIdAndDate(mFragment.getSupplierId(),
                             mFragment.getDateString()),
                    DISH_PROJECTION, null, null, null);
 

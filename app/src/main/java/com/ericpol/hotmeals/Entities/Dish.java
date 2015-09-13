@@ -9,6 +9,8 @@ import android.os.Parcelable;
 
 public class Dish implements Comparable<Dish>, Parcelable{
 
+    // TODO: 11/09/15 remove categoryName field 
+
     private long id;
 
     private String name;

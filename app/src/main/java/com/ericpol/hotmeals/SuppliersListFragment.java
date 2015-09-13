@@ -1,11 +1,14 @@
 package com.ericpol.hotmeals;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.CursorAdapter;
+import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,9 +17,11 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ericpol.hotmeals.Data.HotMealsContract;
+import com.ericpol.hotmeals.Data.HotMealsProvider;
 import com.ericpol.hotmeals.Entities.Supplier;
 import com.ericpol.hotmeals.Presenter.SuppliersListPresenter;
 import com.ericpol.hotmeals.RetrofitTools.HotmealsApi;
@@ -41,9 +46,7 @@ public class SuppliersListFragment extends Fragment {
 
     private static final String LOG_TAG = SuppliersListFragment.class.getName();
 
-    protected ArrayAdapter<String> adapter;
-    protected List<Supplier> suppliers = new ArrayList<>();
-
+    protected CursorAdapter adapter;
     protected SuppliersListPresenter presenter;
 
     public SuppliersListFragment() {
@@ -58,12 +61,11 @@ public class SuppliersListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState){
-        adapter =
-                new ArrayAdapter<String>(
-                        getActivity(), // The current context (this activity)
-                        R.layout.suppliers_list_item, // The name of the layout ID.
-                        R.id.suppliers_list_item_title, // The ID of the textview to populate.
-                        new ArrayList<String>());
+        String[] columns = new String[]{HotMealsContract.SupplierEntry.COLUMN_NAME};
+        int[] to = new int[]{R.id.suppliers_list_item_title};
+        Cursor cursor = null;
+        adapter = new SimpleCursorAdapter(this.getActivity(), R.layout.suppliers_list_item, cursor, columns, to, 0);
+
         View rootView = inflater.inflate(R.layout.fragment_suppliers_list, container, false);
 
         // Get a reference to the ListView, and attach this adapter to it.
@@ -72,9 +74,9 @@ public class SuppliersListFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Supplier supplier = suppliers.get(i);
                 Intent intent = new Intent(getActivity(), DishesActivity.class);
-                intent.putExtra("supplier", supplier);
+                intent.putExtra("supplier_name", ((TextView) view.findViewById(R.id.suppliers_list_item_title)).getText());
+                intent.putExtra("supplier_id", i);
                 intent.putExtra("date", getDateSetting());
                 startActivity(intent);
             }
@@ -86,7 +88,6 @@ public class SuppliersListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        presenter.populate();
     }
 
     protected String getDateSetting() {
@@ -94,15 +95,11 @@ public class SuppliersListFragment extends Fragment {
         return dateChooser.getDateString();
     }
 
-    public void updateAdapter(List<Supplier> suppliers) {
-        this.suppliers = suppliers;
-        adapter.clear();
-        for (Supplier supplier : suppliers) {
-            adapter.add(supplier.getName());
-        }
-    }
-
     public void onDateChange() {
 
+    }
+
+    public CursorAdapter getAdapter() {
+        return adapter;
     }
 }

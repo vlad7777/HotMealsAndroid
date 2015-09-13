@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SimpleCursorAdapter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -47,18 +48,24 @@ public class SuppliersListTabletFragment extends SuppliersListFragment {
     }
 
     View prevSelected = null;
-    Supplier mSupplier;
     DishesListFragment mDishesList;
+    int supplierId = -1;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState){
-        adapter =
-                new ArrayAdapter<String>(
-                        getActivity(), // The current context (this activity)
-                        R.layout.suppliers_list_item, // The name of the layout ID.
-                        R.id.suppliers_list_item_title, // The ID of the textview to populate.
-                        new ArrayList<String>());
+        String[] columns = new String[]{HotMealsContract.SupplierEntry.COLUMN_NAME};
+        int[] to = new int[]{R.id.suppliers_list_item_title};
+        Cursor cursor = null;
+        adapter = new SimpleCursorAdapter(this.getActivity(), R.layout.suppliers_list_item, cursor, columns, to, 0) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View view = super.getView(position, convertView, parent);
+                view.setTag(position);
+                return view;
+            }
+        };
+
         View rootView = inflater.inflate(R.layout.fragment_suppliers_list, container, false);
 
         // Get a reference to the ListView, and attach this adapter to it.
@@ -71,14 +78,13 @@ public class SuppliersListTabletFragment extends SuppliersListFragment {
                 if (prevSelected != null)
                     prevSelected.setBackgroundColor(Color.parseColor("#f0f0f0"));
                 prevSelected = view;
-                mSupplier= suppliers.get(i);
                 if (mDishesList == null)
                     mDishesList = (DishesListFragment) getActivity().getSupportFragmentManager().findFragmentById(R.id.dishes_list_fragment);
-                mDishesList.updateSupplier(mSupplier, getDateSetting());
+                supplierId = i;
+                mDishesList.updateSupplier(supplierId, getDateSetting());
             }
         });
         presenter = new SuppliersListPresenter(this);
-        presenter.populate();
         return rootView;
     }
 
@@ -86,7 +92,7 @@ public class SuppliersListTabletFragment extends SuppliersListFragment {
     public void onDateChange() {
         if (mDishesList == null)
             mDishesList = (DishesListFragment) getActivity().getSupportFragmentManager().findFragmentById(R.id.dishes_list_fragment);
-        mDishesList.updateSupplier(mSupplier, getDateSetting());
+        mDishesList.updateSupplier(supplierId, getDateSetting());
     }
 }
 
