@@ -31,4 +31,14 @@
 
     <string name="pref_name">shared_pref</string>
 
+    <string name="special_comments_label">Special comments:</string>
+
+    <string name="address_label">Address to deliver to:</string>
+
+    <string name="error_no_address">Please enter your address</string>
+
+    <string name="last_address_pref">last_address</string>
+
+    <string name="last_comment_pref">last_comment</string>
+
 </resources>

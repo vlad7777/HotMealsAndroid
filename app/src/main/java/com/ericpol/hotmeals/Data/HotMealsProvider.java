@@ -14,6 +14,7 @@ import com.ericpol.hotmeals.Data.HotMealsContract.SupplierEntry;
 import com.ericpol.hotmeals.Data.HotMealsContract.DishEntry;
 import com.ericpol.hotmeals.Data.HotMealsContract.UpdateTimeEntry;
 import com.ericpol.hotmeals.Data.HotMealsContract.CategoryEntry;
+import com.ericpol.hotmeals.Entities.Dish;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,6 +45,7 @@ public class HotMealsProvider extends ContentProvider {
     private static final int UPDATE_BY_SUPPLIER = 8;
     private static final int CATEGORIES = 9;
     private static final int CATEGORIES_BY_ID = 10;
+    private static final int CATEGORIES_BY_SUPPLIER_AND_DATE = 11;
 
     static {
         sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -57,6 +59,7 @@ public class HotMealsProvider extends ContentProvider {
         sUriMatcher.addURI(sAuthority, "update/*", UPDATE_BY_SUPPLIER);
         sUriMatcher.addURI(sAuthority, "categories", CATEGORIES);
         sUriMatcher.addURI(sAuthority, "categories/#", CATEGORIES_BY_ID);
+        sUriMatcher.addURI(sAuthority, "categories/#/*", CATEGORIES_BY_SUPPLIER_AND_DATE);
 
         sQueryBuilder = new SQLiteQueryBuilder();
         sQueryBuilder.setTables(
@@ -112,25 +115,35 @@ public class HotMealsProvider extends ContentProvider {
                 sortOrder);
     }
 
-    Cursor getDishesBySupplier(Uri uri, String[] projection, String sortOrder) {
+    Cursor getDishesBySupplier(Uri uri, String[] projection, String aSelection, String[] aSelectionArgs, String sortOrder) {
         String supplierId = SupplierEntry.getSupplierIdFromUri(uri);
         String date = DishEntry.getDateFromUri(uri);
 
-        String selection;
-        String[] selectionArgs;
+        String selection = "";
+        if (aSelection != null)
+            selection = aSelection;
 
+        List<String> list = new ArrayList<>();
+        if (aSelectionArgs != null)
+            for (String e : aSelectionArgs)
+                list.add(e);
+
+        if (selection != "")
+            selection += " AND ";
         if (date == null) {
-            selection = DishEntry.COLUMN_SUPPLIER_ID + " = ?";
-            selectionArgs = new String[]{supplierId};
+            selection += DishEntry.COLUMN_SUPPLIER_ID + " = ?";
+            list.add(supplierId);
         } else {
-            selection = DishEntry.TABLE_NAME + "." + DishEntry.COLUMN_SUPPLIER_ID + " = ? AND " + DishEntry.COLUMN_BEGIN_DATE + " <= ?  AND " + DishEntry.COLUMN_END_DATE + " >= ?";
-            selectionArgs = new String[]{supplierId, date, date};
+            selection += DishEntry.TABLE_NAME + "." + DishEntry.COLUMN_SUPPLIER_ID + " = ? AND " + DishEntry.COLUMN_BEGIN_DATE + " <= ?  AND " + DishEntry.COLUMN_END_DATE + " >= ?";
+            list.add(supplierId);
+            list.add(date);
+            list.add(date);
         }
 
         return sQueryBuilder.query(mDbHelper.getReadableDatabase(),
                 projection,
                 selection,
-                selectionArgs,
+                list.toArray(new String[]{}),
                 null,
                 null,
                 sortOrder
@@ -159,6 +172,14 @@ public class HotMealsProvider extends ContentProvider {
         return mDbHelper.getReadableDatabase().query(CategoryEntry.TABLE_NAME, projection, selection, selectionArgs, null, null, sortOrder);
     }
 
+    Cursor getCategoriesBySupplierAndDate(Uri uri, String[] projection, String sortOrder) {
+        String supplierId = CategoryEntry.getSupplierFromUri(uri);
+        String date = CategoryEntry.getDateFromUri(uri);
+        String selection = CategoryEntry.TABLE_NAME + "." + CategoryEntry.COLUMN_SUPPLIER_ID + " = ? AND " + DishEntry.COLUMN_BEGIN_DATE + " <= ? AND " + DishEntry.COLUMN_END_DATE + " >= ?";
+        String[] selectionArgs = new String[]{supplierId, date, date};
+        String table = sQueryBuilder.getTables();
+        return mDbHelper.getReadableDatabase().query(true, table, projection, selection, selectionArgs, null, null, sortOrder, Integer.toString(10000));
+    }
     private int deleteSupplier(Uri uri, String selection, String selectionArgs[]) {
 
         String supplierId = SupplierEntry.getSupplierIdFromUri(uri);
@@ -168,8 +189,9 @@ public class HotMealsProvider extends ContentProvider {
 
         if (supplierId != null) {
             if (selection == null)
-                selection = "";
-            selection = selection + " AND " + SupplierEntry._ID + " = ?";
+                selection = SupplierEntry._ID + " = ?";
+            else
+                selection = selection + " AND " + SupplierEntry._ID + " = ?";
             list.add(supplierId);
         }
         String[] test = new String[]{};
@@ -185,8 +207,9 @@ public class HotMealsProvider extends ContentProvider {
 
         if (dishId != null) {
             if (selection == null)
-                selection = "";
-            selection = selection + " AND " + DishEntry._ID + " = ?";
+                selection = DishEntry._ID + " = ?";
+            else
+                selection = selection + " AND " + DishEntry._ID + " = ?";
             list.add(dishId);
         }
         String[] test = new String[]{};
@@ -202,8 +225,9 @@ public class HotMealsProvider extends ContentProvider {
 
         if (id != null) {
             if (selection == null)
-                selection = "";
-            selection = selection + " AND " + CategoryEntry.COLUMN_SUPPLIER_ID + " = ?";
+                selection = CategoryEntry.COLUMN_SUPPLIER_ID + " = ?";
+            else
+                selection = selection + " AND " + CategoryEntry.COLUMN_SUPPLIER_ID + " = ?";
             list.add(id);
         }
         String[] test = new String[]{};
@@ -219,8 +243,9 @@ public class HotMealsProvider extends ContentProvider {
 
         if (id != null) {
             if (selection == null)
-                selection = "";
-            selection = selection + " AND " + UpdateTimeEntry.COLUMN_SUPPLIER_ID + " = ?";
+                selection = UpdateTimeEntry.COLUMN_SUPPLIER_ID + " = ?";
+            else
+                selection = selection + " AND " + UpdateTimeEntry.COLUMN_SUPPLIER_ID + " = ?";
             list.add(id);
         }
         String[] test = new String[]{};
@@ -257,10 +282,11 @@ public class HotMealsProvider extends ContentProvider {
             case UPDATE_BY_SUPPLIER:
                 return UpdateTimeEntry.CONTENT_ITEM_TYPE;
 
+            case CATEGORIES_BY_SUPPLIER_AND_DATE:
             case CATEGORIES:
                 return CategoryEntry.CONTENT_TYPE;
             case CATEGORIES_BY_ID:
-                return CategoryEntry.CONTENT_TYPE;
+                return CategoryEntry.CONTENT_ITEM_TYPE;
 
             default:
                 throw new UnsupportedOperationException("Unknown Uri: " + uri);
@@ -290,7 +316,7 @@ public class HotMealsProvider extends ContentProvider {
 
             case DISHES_BY_SUPPLIER:
             case DISHES_BY_SUPPLIER_AND_DATE:
-                result = getDishesBySupplier(uri, projection, sortOrder);
+                result = getDishesBySupplier(uri, projection, selection, selectionArgs, sortOrder);
                 break;
 
             case UPDATE:
@@ -301,6 +327,10 @@ public class HotMealsProvider extends ContentProvider {
             case CATEGORIES:
             case CATEGORIES_BY_ID:
                 result = getCategories(uri, projection, sortOrder);
+                break;
+
+            case CATEGORIES_BY_SUPPLIER_AND_DATE:
+                result = getCategoriesBySupplierAndDate(uri, projection, sortOrder);
                 break;
 
             default:
@@ -364,9 +394,7 @@ public class HotMealsProvider extends ContentProvider {
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         final SQLiteDatabase db = mDbHelper.getWritableDatabase();
-        int rowsDeleted;
-
-        if (null == selection) selection = "1";
+        int rowsDeleted = 0;
 
         switch (sUriMatcher.match(uri)) {
             case SUPPLIERS:

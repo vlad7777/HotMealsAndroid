@@ -153,8 +153,28 @@ public class HotMealsContract {
             }
         }
 
+        public static String getSupplierFromUri(Uri uri) {
+            try {
+                return uri.getPathSegments().get(1);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
+        public static String getDateFromUri(Uri uri) {
+            try {
+                return uri.getPathSegments().get(2);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
         public static Uri buildUriFromId(long id) {
             return CONTENT_URI.buildUpon().appendPath(Long.toString(id)).build();
+        }
+
+        public static Uri buldUriFromSupplierAndDate(long supplierId, String date) {
+            return CONTENT_URI.buildUpon().appendPath(Long.toString(supplierId)).appendPath(date).build();
         }
     }
 }

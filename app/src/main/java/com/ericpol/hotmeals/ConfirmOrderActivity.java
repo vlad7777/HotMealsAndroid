@@ -1,9 +1,15 @@
 package com.ericpol.hotmeals;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.AttributeSet;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
 
 public class ConfirmOrderActivity extends AppCompatActivity {
 
@@ -11,6 +17,16 @@ public class ConfirmOrderActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_confirm_order);
+
+        EditText addressView = (EditText) this.findViewById(R.id.textbox_address);
+        EditText specialCommentsView = (EditText) this.findViewById(R.id.textbox_special_comments);
+
+        SharedPreferences pref = this.getSharedPreferences(this.getResources().getString(R.string.pref_name), Context.MODE_PRIVATE);
+        String address = pref.getString(this.getResources().getString(R.string.last_address_pref), "");
+        String comment = pref.getString(this.getResources().getString(R.string.last_comment_pref), "");
+
+        addressView.setText(address);
+        specialCommentsView.setText(comment);
     }
 
     @Override

@@ -52,12 +52,12 @@ public class DBPopulator {
 
         static {
             dishes = new ArrayList<>();
-            dishes.add(new Dish(0, "Wine", 0, "drink", 34, "20150909", "20160909", 0));
-            dishes.add(new Dish(1, "Coke", 0, "drink", 20, "20150909", "20160909", 0));
-            dishes.add(new Dish(2, "Meat", 1, "Main course", 30, "20150909", "20160909", 0));
-            dishes.add(new Dish(3, "Zurek", 2, "soup", 30, "20150909", "20160909", 1));
-            dishes.add(new Dish(4, "Ice cream", 3, "Dessert", 30, "20150909", "20160909", 1));
-            dishes.add(new Dish(5, "Meat", 3, "Dessert", 30, "20150909", "20160909", 1));
+            dishes.add(new Dish(0, "Wine", 0, 34, "20150909", "20160909", 0));
+            dishes.add(new Dish(1, "Coke", 0, 20, "20150909", "20160909", 0));
+            dishes.add(new Dish(2, "Meat", 1, 30, "20150909", "20160909", 0));
+            dishes.add(new Dish(3, "Zurek", 2, 30, "20150909", "20160909", 1));
+            dishes.add(new Dish(4, "Ice cream", 3, 30, "20150909", "20160909", 1));
+            dishes.add(new Dish(5, "Meat", 3, 30, "20150909", "20160909", 1));
 
             categories = new ArrayList<>();
             categories.add(new Category(0, "Drink", 0));

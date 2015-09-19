@@ -14,6 +14,7 @@
         android:enabled="true"
         android:textColor="#000000"
         android:textSize="@dimen/abc_text_size_medium_material"
+        android:paddingLeft="45dp"
         />
     <View
         android:layout_width="fill_parent"

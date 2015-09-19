@@ -1,23 +1,67 @@
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <fragment android:id="@+id/fragment_confirm"
-        android:name="com.ericpol.hotmeals.ConfirmOrderListFragment"
+    <ScrollView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_height="match_parent"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"/>
+        android:orientation="vertical"
+        android:fillViewport="true"
+        >
 
-    <fragment
-        android:id="@+id/lower_bar_fragment_confirm"
-        android:name="com.ericpol.hotmeals.LowerBarFragment"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0"
-        android:layout_gravity="bottom"
-        />
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-</LinearLayout>
+            <fragment android:id="@+id/fragment_confirm"
+                android:name="com.ericpol.hotmeals.ConfirmOrderListFragment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_margin="16dp"
+                android:layout_marginBottom="0dp"
+                android:layout_weight="1">
+
+                <TextView android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/address_label"
+                    />
+
+                <EditText
+                    android:id="@+id/textbox_address"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textMultiLine"
+                    android:lines="2"
+                    android:scrollbars="vertical"
+                    />
+
+                <TextView android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/special_comments_label"
+                    />
+
+                <EditText
+                    android:id="@+id/textbox_special_comments"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textMultiLine"
+                    android:lines="2"
+                    android:scrollbars="vertical"
+                    />
+
+            </LinearLayout>
+
+            <fragment
+                android:id="@+id/lower_bar_fragment_confirm"
+                android:name="com.ericpol.hotmeals.LowerBarFragment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                />
+
+        </LinearLayout>
+    </ScrollView>

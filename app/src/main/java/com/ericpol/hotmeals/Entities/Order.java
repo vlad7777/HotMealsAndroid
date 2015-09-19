@@ -16,6 +16,10 @@ public class Order implements Parcelable{
 
     private String date;
 
+    private String address;
+
+    private String comment;
+
     private User user;
 
     private List<Dish> dishes = new ArrayList<>();
@@ -81,5 +85,21 @@ public class Order implements Parcelable{
 
     public void setDishes(List<Dish> dishes) {
         this.dishes = dishes;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
     }
 }

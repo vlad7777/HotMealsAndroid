@@ -1,14 +1,18 @@
 package com.ericpol.hotmeals;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,7 +27,8 @@ import org.w3c.dom.Text;
 
 public class LowerBarFragment extends Fragment {
 
-    @Override
+    private static final String LOG_TAG = LowerBarFragment.class.getName();
+
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
     }
@@ -39,11 +44,35 @@ public class LowerBarFragment extends Fragment {
             ((Button) rootView.findViewById(R.id.subimit_order_button)).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Toast toast = Toast.makeText(getActivity(), getResources().getString(R.string.successful_submit_toast) , Toast.LENGTH_SHORT);
-                    toast.show();
-                    Intent intent = new Intent(getActivity(), SuppliersActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(intent);
+                    Order order = getActivity().getIntent().getParcelableExtra("order");
+
+                    EditText addressView = (EditText) getActivity().findViewById(R.id.textbox_address);
+                    EditText specialCommentsView = (EditText) getActivity().findViewById(R.id.textbox_special_comments);
+                    String address = addressView.getText().toString();
+                    String comment = specialCommentsView.getText().toString();
+
+                    if (address.equals("")){
+                        Toast toast = Toast.makeText(getActivity(), getResources().getString(R.string.error_no_address) , Toast.LENGTH_SHORT);
+                        toast.show();
+                    } else {
+
+                        order.setAddress(address);
+                        order.setComment(comment);
+
+                        SharedPreferences pref = getActivity().getSharedPreferences(getResources().getString(R.string.pref_name), Context.MODE_PRIVATE);
+                        SharedPreferences.Editor edit = pref.edit();
+                        edit.putString(getString(R.string.last_address_pref), address);
+                        edit.putString(getString(R.string.last_comment_pref), comment);
+                        edit.apply();
+
+                        POST(order);
+
+                        Toast toast = Toast.makeText(getActivity(), getResources().getString(R.string.successful_submit_toast), Toast.LENGTH_SHORT);
+                        toast.show();
+                        Intent intent = new Intent(getActivity(), SuppliersActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                    }
                 }
             });
         } else {
@@ -66,7 +95,7 @@ public class LowerBarFragment extends Fragment {
     private void POST(Order order) {
         Gson gson = new Gson();
         String json = gson.toJson(order);
+        Log.i(LOG_TAG, json);
     }
-
 
 }

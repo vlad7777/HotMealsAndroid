@@ -17,8 +17,6 @@ public class Dish implements Comparable<Dish>, Parcelable{
 
     private long categoryId;
 
-    private String categoryName;
-
     private double price;
 
     private String dateBegin;
@@ -27,30 +25,32 @@ public class Dish implements Comparable<Dish>, Parcelable{
 
     private long supplierId;
 
-    public Dish(long id, String name, long categoryId, String categoryName, double price, String dateBegin, String dateEnd, long supplierId)
+    public Dish(long id, String name, long categoryId, double price, String dateBegin, String dateEnd, long supplierId)
     {
         this.id = id;
         this.name = name;
         this.categoryId = categoryId;
-        this.categoryName = categoryName;
         this.price = price;
         this.dateBegin = dateBegin;
         this.dateEnd = dateEnd;
         this.supplierId = supplierId;
     }
 
-    public Dish(long id, String name, String categoryName, double price) {
+    public Dish(long id, String name, double price) {
         this.id = id;
         this.name = name;
-        this.categoryName = categoryName;
         this.price = price;
     }
 
     @Override
     public int compareTo(Dish dish)
     {
-        int c1 = this.categoryName.compareTo(dish.getCategoryName());
-        return c1 == 0 ? this.name.compareTo(dish.getName()) : c1;
+        if (id < dish.id)
+            return -1;
+        else if (id == dish.id)
+            return 0;
+        else
+            return 1;
     }
 
     public int describeContents(){
@@ -61,7 +61,6 @@ public class Dish implements Comparable<Dish>, Parcelable{
         out.writeLong(id);
         out.writeString(name);
         out.writeLong(categoryId);
-        out.writeString(categoryName);
         out.writeDouble(price);
         out.writeString(dateBegin);
         out.writeString(dateEnd);
@@ -73,12 +72,11 @@ public class Dish implements Comparable<Dish>, Parcelable{
             long id = in.readLong();
             String name = in.readString();
             long categoyId = in.readLong();
-            String categoryName = in.readString();
             double price = in.readDouble();
             String beginDate = in.readString();
             String endDate = in.readString();
             long supplier_id = in.readLong();
-            return new Dish(id,name, categoyId, categoryName, price, beginDate, endDate, supplier_id);
+            return new Dish(id,name, categoyId, price, beginDate, endDate, supplier_id);
         }
 
         public Dish[] newArray(int size) {
@@ -116,14 +114,6 @@ public class Dish implements Comparable<Dish>, Parcelable{
 
     public void setPrice(double price) {
         this.price = price;
-    }
-
-    public String getCategoryName() {
-        return categoryName;
-    }
-
-    public void setCategoryName(String categoryName) {
-        this.categoryName = categoryName;
     }
 
     public long getCategoryId() {
