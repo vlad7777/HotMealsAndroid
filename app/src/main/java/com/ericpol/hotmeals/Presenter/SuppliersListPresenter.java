@@ -31,6 +31,9 @@ public class SuppliersListPresenter implements LoaderManager.LoaderCallbacks<Cur
     private static final String LOG_TAG = SuppliersListPresenter.class.getName();
 
     private static final int SUPPLIERS_LOADER = 0;
+    public static final int COLUMN_SUPPLIERS_ID = 0;
+    public static final int COLUMN_SUPPLIERS_NAME = 1;
+
 
     SuppliersListFragment mFragment;
     DBPopulator dbPopulator;
@@ -38,8 +41,11 @@ public class SuppliersListPresenter implements LoaderManager.LoaderCallbacks<Cur
     public SuppliersListPresenter(SuppliersListFragment fragment) {
         mFragment = fragment;
         dbPopulator = new DBPopulator(fragment.getActivity().getContentResolver(), mFragment.getActivity());
-        dbPopulator.checkSuppliers();
         mFragment.getLoaderManager().initLoader(SUPPLIERS_LOADER, null, this);
+    }
+
+    public void updateData() {
+        dbPopulator.checkSuppliers();
     }
 
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
@@ -48,39 +54,22 @@ public class SuppliersListPresenter implements LoaderManager.LoaderCallbacks<Cur
     }
 
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.i(LOG_TAG, "received suppliers cursor");
+        String s = "";
+        data.moveToFirst();
+        while (!data.isAfterLast()) {
+            for (int i = 0; i < data.getColumnCount(); i++)
+                s += data.getColumnName(i) + ":" + data.getString(i) + " ";
+            Log.i(LOG_TAG, s);
+            data.moveToNext();
+        }
+        data.moveToFirst();
         mFragment.getAdapter().swapCursor(data);
+        mFragment.getAdapter().notifyDataSetChanged();
     }
 
     public void onLoaderReset(Loader<Cursor> loader) {
         mFragment.getAdapter().swapCursor(null);
     }
 
-    /*private class FetchSuppliersTask extends AsyncTask<List<Supplier>, Void, List<Supplier>> {
-
-
-        private static final String LOG_TAG = "FetchSuppliersTask";
-        private List<Supplier> target;
-
-        protected List<Supplier> doInBackground(List<Supplier>... params) {
-            String[] projection = new String[]{HotMealsContract.SupplierEntry._ID, HotMealsContract.SupplierEntry.COLUMN_NAME};
-            Cursor cursor = mFragment.getActivity().getContentResolver().query(HotMealsContract.SupplierEntry.CONTENT_URI, projection, null, null, null);
-
-            List<Supplier> suppliers = new ArrayList<>();
-            cursor.moveToFirst();
-            Log.i(LOG_TAG, "Loading suppliers:");
-            while (!cursor.isAfterLast()) {
-                Supplier supplier = new Supplier(cursor.getLong(0), cursor.getString(1));
-                suppliers.add(supplier);
-                Log.i(LOG_TAG, supplier.getName());
-                cursor.moveToNext();
-            }
-            cursor.close();
-
-            return suppliers;
-        }
-
-        protected void onPostExecute(List<Supplier> suppliers) {
-            mFragment.updateAdapter(suppliers);
-        }
-    }*/
 }

@@ -66,7 +66,6 @@ public class DishesListPresenter implements LoaderManager.LoaderCallbacks<Cursor
     }
 
     public void initDishesLoader(int id) {
-        Log.i(LOG_TAG, "init dishes loader for id " + id);
         mFragment.getActivity().getSupportLoaderManager().restartLoader(id, null, this);
     }
 
@@ -83,7 +82,6 @@ public class DishesListPresenter implements LoaderManager.LoaderCallbacks<Cursor
                     CategoryQueryParameters.CATEGORY_PROJECTION, null, null, null);
         } else {
             String selectionsArgs[] = new String[]{Integer.toString(id)};
-            Log.i(LOG_TAG, "starting dishes cursor for id " + id);
             return new CursorLoader(mFragment.getActivity(), HotMealsContract.DishEntry.buildDishUriFromSupplierIdAndDate(mFragment.getSupplierId(), mFragment.getDateString()),
                     DishQueryParameters.DISH_PROJECTION, DishQueryParameters.SELECTION, selectionsArgs, null);
         }

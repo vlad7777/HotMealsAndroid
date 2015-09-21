@@ -47,6 +47,9 @@ public class ConfirmOrderListFragment extends Fragment {
         Intent intent = getActivity().getIntent();
         if (intent != null && intent.hasExtra("order")) {
             order = intent.getParcelableExtra("order");
+            for (Dish dish : order.getDishes()) {
+                totalPrice += dish.getPrice();
+            }
         } else {
             Log.e(LOG_TAG, "no parameters in extra");
             return rootView;

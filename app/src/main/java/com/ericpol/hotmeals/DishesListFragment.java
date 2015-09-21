@@ -73,7 +73,6 @@ public class DishesListFragment extends Fragment {
     public void updateSupplier(int supplierId, String dateString) {
         this.supplierId = supplierId;
         this.dateString = dateString;
-        Log.i(LOG_TAG, "supplier click or date change detected, updating");
     }
 
     public Order formOrder() {
@@ -112,18 +111,14 @@ public class DishesListFragment extends Fragment {
 
         @Override
         protected Cursor getChildrenCursor(Cursor groupCursor) {
-            Log.i(LOG_TAG, "getChildrenCursor");
             String s = "";
             for (int i = 0; i < groupCursor.getColumnCount(); i++)
                 s += groupCursor.getColumnName(i) + ":" + groupCursor.getString(i) + " ";
-            Log.i(LOG_TAG, s);
 
             int position = groupCursor.getPosition();
             int id = groupCursor.getInt(DishesListPresenter.CategoryQueryParameters.COLUMN_CATEGORY_ID);
-            Log.i(LOG_TAG, "found id is " + id);
 
             if (!mGroupMap.containsKey(id)) {
-                Log.i(LOG_TAG, "have never been here, starting another loader");
                 mGroupMap.put(id, position);
                 presenter.initDishesLoader(id);
             }
@@ -134,7 +129,6 @@ public class DishesListFragment extends Fragment {
         //don't want to realease the cursors that belong to the collapsed group
         @Override
         public void onGroupCollapsed(int groupPosition) {
-            Log.i(LOG_TAG, "collapsed");
             allowCollapse = true;
         }
 

@@ -61,26 +61,13 @@ public class SuppliersListFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState){
-        String[] columns = new String[]{HotMealsContract.SupplierEntry.COLUMN_NAME};
-        int[] to = new int[]{R.id.suppliers_list_item_title};
-        Cursor cursor = null;
-        adapter = new SimpleCursorAdapter(this.getActivity(), R.layout.suppliers_list_item, cursor, columns, to, 0);
+        adapter = new SuppliersAdapter(getActivity(), null, 0);
 
         View rootView = inflater.inflate(R.layout.fragment_suppliers_list, container, false);
 
         // Get a reference to the ListView, and attach this adapter to it.
         ListView listView = (ListView) rootView.findViewById(R.id.listview_suppliers);
         listView.setAdapter(adapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Intent intent = new Intent(getActivity(), DishesActivity.class);
-                intent.putExtra("supplier_name", ((TextView) view.findViewById(R.id.suppliers_list_item_title)).getText());
-                intent.putExtra("supplier_id", i);
-                intent.putExtra("date", getDateSetting());
-                startActivity(intent);
-            }
-        });
         presenter = new SuppliersListPresenter(this);
         return rootView;
     }
@@ -88,6 +75,7 @@ public class SuppliersListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        presenter.updateData();
     }
 
     protected String getDateSetting() {
@@ -101,5 +89,36 @@ public class SuppliersListFragment extends Fragment {
 
     public CursorAdapter getAdapter() {
         return adapter;
+    }
+
+    public class SuppliersAdapter extends CursorAdapter {
+
+        public SuppliersAdapter(Context context, Cursor cursor, int flags) {
+            super(context, cursor, flags);
+        }
+
+        @Override
+        public View newView(Context context, Cursor cursor, ViewGroup parent) {
+            return LayoutInflater.from(context).inflate(R.layout.suppliers_list_item, parent, false);
+        }
+
+        @Override
+        public void bindView(View view, Context context, Cursor cursor) {
+            String name = cursor.getString(SuppliersListPresenter.COLUMN_SUPPLIERS_NAME);
+            int id = cursor.getInt(SuppliersListPresenter.COLUMN_SUPPLIERS_ID);
+            TextView title = (TextView) view.findViewById(R.id.suppliers_list_item_title);
+            title.setText(name);
+            view.setTag(id);
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getActivity(), DishesActivity.class);
+                    intent.putExtra("supplier_name", ((TextView) v.findViewById(R.id.suppliers_list_item_title)).getText());
+                    intent.putExtra("supplier_id", (Integer) v.getTag());
+                    intent.putExtra("date", getDateSetting());
+                    startActivity(intent);
+                }
+            });
+        }
     }
 }

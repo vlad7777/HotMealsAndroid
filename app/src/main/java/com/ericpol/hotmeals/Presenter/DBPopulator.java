@@ -70,6 +70,28 @@ public class DBPopulator {
             suppliers.add(new Supplier(1, "Obstreperous ferrule"));
         }
 
+        public static List<Dish> dishesById(long id) {
+            if (id == -1)
+                return dishes;
+            List<Dish> result = new ArrayList<>();
+            for (Dish dish : dishes) {
+                if (dish.getSupplierId() == id)
+                    result.add(dish);
+            }
+            return result;
+        }
+
+        public static List<Category> categoriesById(long id) {
+            if (id == -1)
+                return categories;
+            List<Category> result = new ArrayList<>();
+            for (Category category : categories) {
+                if (category.getSupplierId() == id)
+                    result.add(category);
+            }
+            return result;
+        }
+
     };
 
     private ContentResolver mContentResolver;
@@ -83,7 +105,7 @@ public class DBPopulator {
     private final String CLIENT_ID = "mobile";
 
     private boolean flagDishes, flagCategories;
-    private boolean useDummy = true;
+    private boolean useDummy = false;
 
     public DBPopulator(ContentResolver contentResolver, Context context) {
         mContentResolver = contentResolver;
@@ -206,7 +228,7 @@ public class DBPopulator {
 
             if (dishes == null)
                 if (useDummy)
-                    dishes = DummyData.dishes;
+                    dishes = DummyData.dishesById(supplierId);
                 else
                     return 0;
 
@@ -216,7 +238,10 @@ public class DBPopulator {
 
             Vector<ContentValues> cvVector = new Vector<ContentValues>();
 
+            Log.i(LOG_TAG, "received dishes");
+
             for (Dish dish : dishes) {
+                Log.i(LOG_TAG, dish.getName() + ' ' + dish.getId() + ' ' + dish.getSupplierId());
                 ContentValues cv = new ContentValues();
                 cv.put(DishEntry._ID, dish.getId());
                 cv.put(DishEntry.COLUMN_NAME, dish.getName());
@@ -278,8 +303,9 @@ public class DBPopulator {
 
             mContentResolver.delete(SupplierEntry.CONTENT_URI, null, null);
             Vector<ContentValues> cvVector = new Vector<ContentValues>();
-
+            Log.i(LOG_TAG, "suppliers received:");
             for (Supplier supplier : suppliers) {
+                Log.i(LOG_TAG, supplier.getName() + " " + supplier.getId());
                 ContentValues cv = new ContentValues();
                 cv.put(SupplierEntry._ID, supplier.getId());
                 cv.put(SupplierEntry.COLUMN_NAME, supplier.getName());
@@ -331,7 +357,7 @@ public class DBPopulator {
 
             if (categories == null)
                 if (useDummy)
-                       categories = DummyData.categories;
+                       categories = DummyData.categoriesById(supplierId);
                 else
                     return 0;
 

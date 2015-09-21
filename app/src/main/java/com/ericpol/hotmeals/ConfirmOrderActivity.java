@@ -2,6 +2,7 @@ package com.ericpol.hotmeals;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.AttributeSet;
@@ -10,6 +11,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.TextView;
+
+import org.w3c.dom.Text;
 
 public class ConfirmOrderActivity extends AppCompatActivity {
 
@@ -27,6 +31,9 @@ public class ConfirmOrderActivity extends AppCompatActivity {
 
         addressView.setText(address);
         specialCommentsView.setText(comment);
+        TextView totalPrice = (TextView) this.findViewById(R.id.total_price_value);
+        ConfirmOrderListFragment fragment = (ConfirmOrderListFragment) this.getSupportFragmentManager().findFragmentById(R.id.fragment_confirm);
+        totalPrice.setText(Double.toString(fragment.getTotalPrice()));
     }
 
     @Override
