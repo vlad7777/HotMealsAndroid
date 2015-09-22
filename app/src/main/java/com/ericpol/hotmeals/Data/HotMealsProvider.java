@@ -188,7 +188,7 @@ public class HotMealsProvider extends ContentProvider {
             Collections.addAll(list, selectionArgs);
 
         if (supplierId != null) {
-            if (selection == null)
+            if (selection == null || selection.equals(""))
                 selection = SupplierEntry._ID + " = ?";
             else
                 selection = selection + " AND " + SupplierEntry._ID + " = ?";
@@ -206,7 +206,7 @@ public class HotMealsProvider extends ContentProvider {
             Collections.addAll(list, selectionArgs);
 
         if (dishId != null) {
-            if (selection == null)
+            if (selection == null || selection.equals(""))
                 selection = DishEntry._ID + " = ?";
             else
                 selection = selection + " AND " + DishEntry._ID + " = ?";
@@ -224,7 +224,7 @@ public class HotMealsProvider extends ContentProvider {
             Collections.addAll(list, selectionArgs);
 
         if (id != null) {
-            if (selection == null)
+            if (selection == null || selection.equals(""))
                 selection = CategoryEntry.COLUMN_SUPPLIER_ID + " = ?";
             else
                 selection = selection + " AND " + CategoryEntry.COLUMN_SUPPLIER_ID + " = ?";
@@ -242,7 +242,7 @@ public class HotMealsProvider extends ContentProvider {
             Collections.addAll(list, selectionArgs);
 
         if (id != null) {
-            if (selection == null)
+            if (selection == null || selection.equals(""))
                 selection = UpdateTimeEntry.COLUMN_SUPPLIER_ID + " = ?";
             else
                 selection = selection + " AND " + UpdateTimeEntry.COLUMN_SUPPLIER_ID + " = ?";

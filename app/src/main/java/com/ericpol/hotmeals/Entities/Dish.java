@@ -9,8 +9,6 @@ import android.os.Parcelable;
 
 public class Dish implements Comparable<Dish>, Parcelable{
 
-    // TODO: 11/09/15 remove categoryName field 
-
     private long id;
 
     private String name;
@@ -45,12 +43,16 @@ public class Dish implements Comparable<Dish>, Parcelable{
     @Override
     public int compareTo(Dish dish)
     {
-        if (id < dish.id)
+        if (id < dish.getId())
             return -1;
-        else if (id == dish.id)
+        else if (id == dish.getId())
             return 0;
         else
             return 1;
+    }
+
+    public boolean equals(Object dish) {
+        return dish instanceof Dish && this.compareTo((Dish)dish) == 0;
     }
 
     public int describeContents(){

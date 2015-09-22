@@ -168,6 +168,11 @@ public class DishesListFragment extends Fragment {
 
             Dish dish = new Dish(dishId, sTitle, Double.parseDouble(sPrice));
             view.setTag(dish);
+            if (selected.contains(dish)) {
+                view.setBackgroundColor(Color.parseColor("#dadada"));
+            } else {
+                view.setBackgroundColor(Color.parseColor("#f0f0f0"));
+            }
 
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
